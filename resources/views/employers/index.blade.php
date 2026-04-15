@@ -464,6 +464,7 @@
                 <td>${escapeHtml(item.verification_status || '-')}</td>
                 <td>
                     <div class="row-actions">
+                        <a class="btn btn-outline" href="/employeurs/${item.id}">Detail</a>
                         <button class="btn btn-outline" type="button" data-action="edit" data-id="${item.id}">Modifier</button>
                         <button class="btn btn-danger" type="button" data-action="delete" data-id="${item.id}">Supprimer</button>
                     </div>

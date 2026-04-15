@@ -18,6 +18,7 @@ Route::middleware('auth')->group(function (): void {
     })->name('dashboard');
 
     Route::get('/employeurs', [EmployerInterfaceController::class, 'index'])->name('employers.interface');
+    Route::get('/employeurs/{employer}', [EmployerInterfaceController::class, 'show'])->name('employers.show');
     Route::get('/travailleurs', [WorkerInterfaceController::class, 'index'])->name('workers.interface');
 
     Route::prefix('api')
