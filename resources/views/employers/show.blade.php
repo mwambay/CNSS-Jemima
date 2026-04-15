@@ -117,6 +117,13 @@
         border: 1px solid #dde9ff;
     }
 
+    .toolbar-right {
+        display: inline-flex;
+        align-items: center;
+        gap: .55rem;
+        flex-wrap: wrap;
+    }
+
     .btn {
         border: 0;
         border-radius: 10px;
@@ -148,6 +155,10 @@
         border-radius: 12px;
         padding: .9rem;
         background: #fcfcfd;
+    }
+
+    .is-hidden {
+        display: none;
     }
 
     .form-grid {
@@ -359,10 +370,15 @@
         <section id="employer-workers-tab" class="tab-pane" role="tabpanel">
             <div class="toolbar">
                 <h2>Travailleurs rattaches</h2>
-                <span class="kpi">{{ $workers->count() }} travailleur{{ $workers->count() > 1 ? 's' : '' }}</span>
+                <div class="toolbar-right">
+                    <span class="kpi">{{ $workers->count() }} travailleur{{ $workers->count() > 1 ? 's' : '' }}</span>
+                    @if($canManageWorkers)
+                        <button id="toggle-worker-form-btn" class="btn btn-primary" type="button">Ajouter un travailleur</button>
+                    @endif
+                </div>
             </div>
 
-            <div class="table-wrap">
+            <div id="workers-list-block" class="table-wrap">
                 <table>
                     <thead>
                     <tr>
@@ -399,7 +415,7 @@
             </div>
 
             @if($canManageWorkers)
-                <div class="create-worker-card">
+                <div id="create-worker-card" class="create-worker-card is-hidden">
                     <h2>Ajouter un travailleur a cet employeur</h2>
                     <form id="create-worker-form">
                         <input type="hidden" name="employer_id" value="{{ $employer->id }}">
@@ -458,6 +474,7 @@
                         <div class="form-actions">
                             <button id="create-worker-btn" class="btn btn-primary" type="submit">Ajouter</button>
                             <button id="reset-worker-btn" class="btn btn-outline" type="button">Reinitialiser</button>
+                            <button id="cancel-worker-create-btn" class="btn btn-outline" type="button">Annuler</button>
                         </div>
                     </form>
                     <p id="create-worker-status" class="status-text"></p>
@@ -498,9 +515,41 @@
     });
 
     const createWorkerForm = document.getElementById('create-worker-form');
+    const workersListBlock = document.getElementById('workers-list-block');
+    const createWorkerCard = document.getElementById('create-worker-card');
+    const toggleWorkerFormBtn = document.getElementById('toggle-worker-form-btn');
+    const cancelWorkerCreateBtn = document.getElementById('cancel-worker-create-btn');
     const createWorkerBtn = document.getElementById('create-worker-btn');
     const resetWorkerBtn = document.getElementById('reset-worker-btn');
     const createWorkerStatus = document.getElementById('create-worker-status');
+
+    function showCreateWorkerForm() {
+        if (workersListBlock) {
+            workersListBlock.classList.add('is-hidden');
+        }
+
+        if (createWorkerCard) {
+            createWorkerCard.classList.remove('is-hidden');
+        }
+
+        if (toggleWorkerFormBtn) {
+            toggleWorkerFormBtn.textContent = 'Voir la liste';
+        }
+    }
+
+    function showWorkersList() {
+        if (workersListBlock) {
+            workersListBlock.classList.remove('is-hidden');
+        }
+
+        if (createWorkerCard) {
+            createWorkerCard.classList.add('is-hidden');
+        }
+
+        if (toggleWorkerFormBtn) {
+            toggleWorkerFormBtn.textContent = 'Ajouter un travailleur';
+        }
+    }
 
     function setCreateWorkerStatus(message, type = '') {
         if (!createWorkerStatus) {
@@ -530,12 +579,28 @@
     }
 
     if (createWorkerForm) {
+        toggleWorkerFormBtn?.addEventListener('click', () => {
+            const formIsHidden = createWorkerCard?.classList.contains('is-hidden');
+
+            if (formIsHidden) {
+                showCreateWorkerForm();
+                return;
+            }
+
+            showWorkersList();
+        });
+
         resetWorkerBtn?.addEventListener('click', () => {
             createWorkerForm.reset();
             const startInput = document.getElementById('employment_start_date');
             if (startInput instanceof HTMLInputElement) {
                 startInput.value = new Date().toISOString().slice(0, 10);
             }
+            setCreateWorkerStatus('');
+        });
+
+        cancelWorkerCreateBtn?.addEventListener('click', () => {
+            showWorkersList();
             setCreateWorkerStatus('');
         });
 
