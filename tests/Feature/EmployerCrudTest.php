@@ -3,21 +3,42 @@
 namespace Tests\Feature;
 
 use App\Models\Employer;
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class EmployerCrudTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_guest_cannot_access_employer_api(): void
+    {
+        $response = $this->getJson('/api/employers');
+
+        $response->assertUnauthorized();
+    }
+
+    public function test_user_without_admin_role_gets_forbidden_on_employer_api(): void
+    {
+        $user = $this->createUser('agent');
+
+        $response = $this->actingAs($user)->getJson('/api/employers');
+
+        $response->assertForbidden();
+    }
+
     public function test_can_list_employers(): void
     {
+        $admin = $this->createAdminUser();
+
         Employer::query()->create([
             'affiliation_number' => 'AFF-001',
             'legal_name' => 'ACME SARL',
         ]);
 
-        $response = $this->getJson('/api/employers');
+        $response = $this->actingAs($admin)->getJson('/api/employers');
 
         $response
             ->assertOk()
@@ -27,6 +48,8 @@ class EmployerCrudTest extends TestCase
 
     public function test_can_create_employer_with_valid_payload(): void
     {
+        $admin = $this->createAdminUser();
+
         $payload = [
             'affiliation_number' => 'AFF-002',
             'legal_name' => 'Global Industries',
@@ -36,7 +59,7 @@ class EmployerCrudTest extends TestCase
             'email' => 'contact@global.test',
         ];
 
-        $response = $this->postJson('/api/employers', $payload);
+        $response = $this->actingAs($admin)->postJson('/api/employers', $payload);
 
         $response
             ->assertCreated()
@@ -51,7 +74,9 @@ class EmployerCrudTest extends TestCase
 
     public function test_create_employer_validates_required_fields(): void
     {
-        $response = $this->postJson('/api/employers', []);
+        $admin = $this->createAdminUser();
+
+        $response = $this->actingAs($admin)->postJson('/api/employers', []);
 
         $response
             ->assertStatus(422)
@@ -60,12 +85,14 @@ class EmployerCrudTest extends TestCase
 
     public function test_can_update_an_employer(): void
     {
+        $admin = $this->createAdminUser();
+
         $employer = Employer::query()->create([
             'affiliation_number' => 'AFF-003',
             'legal_name' => 'Old Name',
         ]);
 
-        $response = $this->putJson('/api/employers/'.$employer->id, [
+        $response = $this->actingAs($admin)->putJson('/api/employers/'.$employer->id, [
             'affiliation_number' => 'AFF-003',
             'legal_name' => 'New Name',
             'status' => 'SUSPENDED',
@@ -86,17 +113,43 @@ class EmployerCrudTest extends TestCase
 
     public function test_can_delete_an_employer(): void
     {
+        $admin = $this->createAdminUser();
+
         $employer = Employer::query()->create([
             'affiliation_number' => 'AFF-004',
             'legal_name' => 'Delete Me',
         ]);
 
-        $response = $this->deleteJson('/api/employers/'.$employer->id);
+        $response = $this->actingAs($admin)->deleteJson('/api/employers/'.$employer->id);
 
         $response->assertNoContent();
 
         $this->assertDatabaseMissing('employers', [
             'id' => $employer->id,
+        ]);
+    }
+
+    private function createAdminUser(): User
+    {
+        $adminRole = Role::query()->create([
+            'code' => 'ADMIN',
+            'label' => 'Administrateur',
+        ]);
+
+        $user = $this->createUser('admin');
+        $user->roles()->attach($adminRole->id);
+
+        return $user;
+    }
+
+    private function createUser(string $username): User
+    {
+        return User::query()->create([
+            'username' => $username,
+            'password_hash' => Hash::make('password123'),
+            'full_name' => ucfirst($username).' User',
+            'email' => $username.'@jemima.local',
+            'is_active' => true,
         ]);
     }
 }

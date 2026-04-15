@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -21,7 +22,7 @@ class DatabaseSeeder extends Seeder
             FraudRuleSeeder::class,
         ]);
 
-        User::query()->updateOrCreate(
+        $admin = User::query()->updateOrCreate(
             ['username' => 'admin'],
             [
                 'password_hash' => Hash::make('admin1234'),
@@ -30,5 +31,10 @@ class DatabaseSeeder extends Seeder
                 'is_active' => true,
             ]
         );
+
+        $adminRole = Role::query()->where('code', 'ADMIN')->first();
+        if ($adminRole !== null) {
+            $admin->roles()->syncWithoutDetaching([$adminRole->id]);
+        }
     }
 }

@@ -1,12 +1,12 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
-@section('title', 'Employeurs | CNSS')
-@section('page_title', 'Employeurs')
-@section('page_subtitle', 'Gestion des affiliations employeurs')
+@section('title', 'Travailleurs | CNSS')
+@section('page_title', 'Travailleurs')
+@section('page_subtitle', 'Gestion des assures salaries')
 
 @push('styles')
 <style>
-    .employer-page {
+    .worker-page {
         display: grid;
         gap: 1rem;
         grid-template-columns: 1fr;
@@ -74,12 +74,6 @@
         transition: border-color .15s ease, box-shadow .15s ease;
     }
 
-    textarea.control {
-        min-height: 88px;
-        height: auto;
-        resize: vertical;
-    }
-
     .control:focus {
         outline: 0;
         border-color: #9cb9ff;
@@ -90,6 +84,7 @@
         display: flex;
         gap: .55rem;
         margin-top: .15rem;
+        flex-wrap: wrap;
     }
 
     .btn {
@@ -131,14 +126,14 @@
         flex-wrap: wrap;
     }
 
-    .toolbar-actions {
-        display: inline-flex;
-        gap: .5rem;
-    }
-
     .toolbar .control {
         min-width: 220px;
         flex: 1;
+    }
+
+    .toolbar-actions {
+        display: inline-flex;
+        gap: .5rem;
     }
 
     .table-wrap {
@@ -150,7 +145,7 @@
     table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 840px;
+        min-width: 980px;
     }
 
     th,
@@ -191,7 +186,7 @@
         background: #fffaeb;
     }
 
-    .badge-closed {
+    .badge-inactive {
         color: #b42318;
         background: #fef3f2;
     }
@@ -224,10 +219,6 @@
         font-weight: 600;
     }
 
-    .panel-hidden {
-        display: none;
-    }
-
     .empty {
         padding: 1.2rem;
         text-align: center;
@@ -235,121 +226,117 @@
         font-size: .9rem;
     }
 
-    @media (max-width: 1080px) {
-        .employer-page {
-            grid-template-columns: 1fr;
-        }
+    .panel-hidden {
+        display: none;
     }
 
-    @media (max-width: 720px) {
+    @media (max-width: 920px) {
         .grid {
             grid-template-columns: 1fr;
-        }
-
-        .actions {
-            flex-wrap: wrap;
         }
     }
 </style>
 @endpush
 
 @section('content')
-    <div class="employer-page">
-        <article class="panel panel-hidden" id="employer-form-panel">
-            <h2 id="form-title">Ajouter un employeur</h2>
-            <form id="employer-form">
-                <input type="hidden" id="employer-id">
-                <div class="grid">
-                    <div class="field">
-                        <label for="affiliation_number">Numero affiliation</label>
-                        <input class="control" id="affiliation_number" name="affiliation_number" required maxlength="30">
-                    </div>
-                    <div class="field">
-                        <label for="legal_name">Raison sociale</label>
-                        <input class="control" id="legal_name" name="legal_name" required maxlength="200">
-                    </div>
-                    <div class="field">
-                        <label for="tax_id">NIF</label>
-                        <input class="control" id="tax_id" name="tax_id" maxlength="50">
-                    </div>
-                    <div class="field">
-                        <label for="registration_number">Registre commerce</label>
-                        <input class="control" id="registration_number" name="registration_number" maxlength="50">
-                    </div>
-                    <div class="field">
-                        <label for="legal_form">Forme juridique</label>
-                        <input class="control" id="legal_form" name="legal_form" maxlength="50">
-                    </div>
-                    <div class="field">
-                        <label for="sector">Secteur</label>
-                        <input class="control" id="sector" name="sector" maxlength="100">
-                    </div>
-                    <div class="field">
-                        <label for="status">Statut</label>
-                        <select class="control" id="status" name="status">
-                            <option value="ACTIVE">ACTIVE</option>
-                            <option value="SUSPENDED">SUSPENDED</option>
-                            <option value="CLOSED">CLOSED</option>
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label for="verification_status">Verification</label>
-                        <select class="control" id="verification_status" name="verification_status">
-                            <option value="PENDING">PENDING</option>
-                            <option value="VERIFIED">VERIFIED</option>
-                            <option value="REJECTED">REJECTED</option>
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label for="phone">Telephone</label>
-                        <input class="control" id="phone" name="phone" maxlength="30">
-                    </div>
-                    <div class="field">
-                        <label for="email">Email</label>
-                        <input class="control" id="email" name="email" type="email" maxlength="150">
-                    </div>
-                    <div class="field full">
-                        <label for="address">Adresse</label>
-                        <textarea class="control" id="address" name="address"></textarea>
-                    </div>
+<div class="worker-page">
+    <article class="panel panel-hidden" id="worker-form-panel">
+        <h2 id="form-title">Ajouter un travailleur</h2>
+        <form id="worker-form">
+            <input type="hidden" id="worker-id">
+            <div class="grid">
+                <div class="field">
+                    <label for="social_security_number">Numero SS</label>
+                    <input class="control" id="social_security_number" name="social_security_number" required maxlength="50">
                 </div>
-
-                <div class="actions">
-                    <button type="submit" class="btn btn-primary" id="save-btn">Enregistrer</button>
-                    <button type="button" class="btn btn-outline" id="reset-btn">Reinitialiser</button>
-                    <button type="button" class="btn btn-outline" id="close-form-btn">Fermer</button>
+                <div class="field">
+                    <label for="national_id">Numero CIN</label>
+                    <input class="control" id="national_id" name="national_id" maxlength="50">
                 </div>
-            </form>
-            <p id="status-message" class="status-text"></p>
-        </article>
-
-        <article class="panel">
-            <div class="kpi" id="kpi-count">0 employeur</div>
-            <div class="toolbar">
-                <input class="control" id="search-input" placeholder="Rechercher par raison sociale, affiliation, NIF...">
-                <div class="toolbar-actions">
-                    <button id="toggle-form-btn" class="btn btn-primary" type="button">Ajouter un employeur</button>
-                    <button id="reload-btn" class="btn btn-outline" type="button">Rafraichir</button>
+                <div class="field">
+                    <label for="first_name">Prenom</label>
+                    <input class="control" id="first_name" name="first_name" required maxlength="100">
+                </div>
+                <div class="field">
+                    <label for="last_name">Nom</label>
+                    <input class="control" id="last_name" name="last_name" required maxlength="100">
+                </div>
+                <div class="field">
+                    <label for="birth_date">Date de naissance</label>
+                    <input class="control" id="birth_date" name="birth_date" type="date">
+                </div>
+                <div class="field">
+                    <label for="gender">Genre</label>
+                    <select class="control" id="gender" name="gender">
+                        <option value="">--</option>
+                        <option value="M">M</option>
+                        <option value="F">F</option>
+                        <option value="OTHER">OTHER</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="status">Statut</label>
+                    <select class="control" id="status" name="status">
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="SUSPENDED">SUSPENDED</option>
+                        <option value="INACTIVE">INACTIVE</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="employer_id">Employeur</label>
+                    <select class="control" id="employer_id" name="employer_id" required></select>
+                </div>
+                <div class="field">
+                    <label for="employment_start_date">Date embauche</label>
+                    <input class="control" id="employment_start_date" name="employment_start_date" type="date" required>
+                </div>
+                <div class="field">
+                    <label for="contract_type">Type contrat</label>
+                    <input class="control" id="contract_type" name="contract_type" maxlength="30">
+                </div>
+                <div class="field full">
+                    <label for="base_salary">Salaire de base</label>
+                    <input class="control" id="base_salary" name="base_salary" type="number" min="0" step="0.01">
                 </div>
             </div>
 
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Affiliation</th>
-                        <th>Raison sociale</th>
-                        <th>NIF</th>
-                        <th>Statut</th>
-                        <th>Verification</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody id="employer-table-body"></tbody>
-                </table>
+            <div class="actions">
+                <button type="submit" class="btn btn-primary" id="save-btn">Enregistrer</button>
+                <button type="button" class="btn btn-outline" id="reset-btn">Reinitialiser</button>
+                <button type="button" class="btn btn-outline" id="close-form-btn">Fermer</button>
             </div>
-        </article>
-    </div>
+        </form>
+        <p id="status-message" class="status-text"></p>
+    </article>
+
+    <article class="panel">
+        <div class="kpi" id="kpi-count">0 travailleur</div>
+        <div class="toolbar">
+            <input class="control" id="search-input" placeholder="Rechercher par nom, numero SS, CIN, employeur...">
+            <div class="toolbar-actions">
+                <button id="toggle-form-btn" class="btn btn-primary" type="button">Ajouter un travailleur</button>
+                <button id="reload-btn" class="btn btn-outline" type="button">Rafraichir</button>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>Numero SS</th>
+                    <th>Nom complet</th>
+                    <th>CIN</th>
+                    <th>Employeur</th>
+                    <th>Date embauche</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="worker-table-body"></tbody>
+            </table>
+        </div>
+    </article>
+</div>
 @endsection
 
 @push('scripts')
@@ -357,18 +344,20 @@
     const csrfToken = '{{ csrf_token() }}';
 
     const state = {
-        employers: [],
+        workers: [],
         filtered: [],
+        employers: [],
     };
 
     const els = {
-        form: document.getElementById('employer-form'),
-        formPanel: document.getElementById('employer-form-panel'),
+        form: document.getElementById('worker-form'),
+        formPanel: document.getElementById('worker-form-panel'),
         formTitle: document.getElementById('form-title'),
         toggleFormBtn: document.getElementById('toggle-form-btn'),
-        employerId: document.getElementById('employer-id'),
+        workerId: document.getElementById('worker-id'),
+        employerSelect: document.getElementById('employer_id'),
         searchInput: document.getElementById('search-input'),
-        tableBody: document.getElementById('employer-table-body'),
+        tableBody: document.getElementById('worker-table-body'),
         reloadBtn: document.getElementById('reload-btn'),
         resetBtn: document.getElementById('reset-btn'),
         closeFormBtn: document.getElementById('close-form-btn'),
@@ -378,17 +367,17 @@
     };
 
     const formFields = [
-        'affiliation_number',
-        'legal_name',
-        'tax_id',
-        'registration_number',
-        'legal_form',
-        'sector',
+        'social_security_number',
+        'national_id',
+        'first_name',
+        'last_name',
+        'birth_date',
+        'gender',
         'status',
-        'verification_status',
-        'phone',
-        'email',
-        'address',
+        'employer_id',
+        'employment_start_date',
+        'contract_type',
+        'base_salary',
     ];
 
     function setStatus(message, type = '') {
@@ -398,11 +387,12 @@
 
     function clearForm() {
         els.form.reset();
-        els.employerId.value = '';
+        els.workerId.value = '';
         document.getElementById('status').value = 'ACTIVE';
-        document.getElementById('verification_status').value = 'PENDING';
-        els.formTitle.textContent = 'Ajouter un employeur';
-        els.toggleFormBtn.textContent = 'Ajouter un employeur';
+        document.getElementById('gender').value = '';
+        document.getElementById('employment_start_date').value = new Date().toISOString().slice(0, 10);
+        els.formTitle.textContent = 'Ajouter un travailleur';
+        els.toggleFormBtn.textContent = 'Ajouter un travailleur';
         setStatus('');
     }
 
@@ -413,7 +403,7 @@
 
     function hideForm() {
         els.formPanel.classList.add('panel-hidden');
-        els.toggleFormBtn.textContent = 'Ajouter un employeur';
+        els.toggleFormBtn.textContent = 'Ajouter un travailleur';
     }
 
     function toggleAddForm() {
@@ -428,40 +418,43 @@
         hideForm();
     }
 
-    function fillForm(employer) {
+    function fillForm(worker) {
         showForm();
-        els.employerId.value = employer.id;
+        els.workerId.value = worker.id;
         formFields.forEach((field) => {
             const input = document.getElementById(field);
-            input.value = employer[field] ?? '';
+            if (input) {
+                input.value = worker[field] ?? '';
+            }
         });
-        els.formTitle.textContent = `Modifier ${employer.legal_name}`;
+        els.formTitle.textContent = `Modifier ${worker.first_name} ${worker.last_name}`;
         els.toggleFormBtn.textContent = 'Masquer formulaire';
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function badgeClass(status) {
         if (status === 'SUSPENDED') return 'badge badge-suspended';
-        if (status === 'CLOSED') return 'badge badge-closed';
+        if (status === 'INACTIVE') return 'badge badge-inactive';
         return 'badge badge-active';
     }
 
-    function renderEmployers() {
+    function renderWorkers() {
         const count = state.filtered.length;
-        els.kpiCount.textContent = `${count} employeur${count > 1 ? 's' : ''}`;
+        els.kpiCount.textContent = `${count} travailleur${count > 1 ? 's' : ''}`;
 
         if (count === 0) {
-            els.tableBody.innerHTML = '<tr><td colspan="6" class="empty">Aucun employeur trouve.</td></tr>';
+            els.tableBody.innerHTML = '<tr><td colspan="7" class="empty">Aucun travailleur trouve.</td></tr>';
             return;
         }
 
         els.tableBody.innerHTML = state.filtered.map((item) => `
             <tr>
-                <td>${escapeHtml(item.affiliation_number || '-')}</td>
-                <td>${escapeHtml(item.legal_name || '-')}</td>
-                <td>${escapeHtml(item.tax_id || '-')}</td>
+                <td>${escapeHtml(item.social_security_number || '-')}</td>
+                <td>${escapeHtml(`${item.first_name || ''} ${item.last_name || ''}`.trim() || '-')}</td>
+                <td>${escapeHtml(item.national_id || '-')}</td>
+                <td>${escapeHtml(item.employer_name || '-')}</td>
+                <td>${escapeHtml(item.employment_start_date || '-')}</td>
                 <td><span class="${badgeClass(item.status)}">${escapeHtml(item.status || 'ACTIVE')}</span></td>
-                <td>${escapeHtml(item.verification_status || '-')}</td>
                 <td>
                     <div class="row-actions">
                         <button class="btn btn-outline" type="button" data-action="edit" data-id="${item.id}">Modifier</button>
@@ -472,28 +465,27 @@
         `).join('');
     }
 
-    function filterEmployers() {
+    function filterWorkers() {
         const term = els.searchInput.value.trim().toLowerCase();
         if (!term) {
-            state.filtered = [...state.employers];
-            renderEmployers();
+            state.filtered = [...state.workers];
+            renderWorkers();
             return;
         }
 
-        state.filtered = state.employers.filter((item) => {
+        state.filtered = state.workers.filter((item) => {
             const blob = [
-                item.legal_name,
-                item.affiliation_number,
-                item.tax_id,
-                item.phone,
-                item.email,
+                item.social_security_number,
+                item.national_id,
+                item.first_name,
+                item.last_name,
+                item.employer_name,
                 item.status,
-                item.verification_status,
             ].join(' ').toLowerCase();
             return blob.includes(term);
         });
 
-        renderEmployers();
+        renderWorkers();
     }
 
     function collectFormPayload() {
@@ -503,27 +495,43 @@
             payload[field] = value === '' ? null : value;
         });
 
-        payload.affiliation_number = payload.affiliation_number || '';
-        payload.legal_name = payload.legal_name || '';
+        payload.social_security_number = payload.social_security_number || '';
+        payload.first_name = payload.first_name || '';
+        payload.last_name = payload.last_name || '';
         payload.status = payload.status || 'ACTIVE';
-        payload.verification_status = payload.verification_status || 'PENDING';
+        payload.employer_id = payload.employer_id ? Number(payload.employer_id) : null;
         return payload;
     }
 
     async function loadEmployers() {
-        setStatus('Chargement des employeurs...');
+        const response = await fetch('/api/employers', {
+            headers: { 'Accept': 'application/json' },
+        });
+
+        if (!response.ok) {
+            throw new Error('Impossible de charger la liste des employeurs.');
+        }
+
+        state.employers = await response.json();
+        els.employerSelect.innerHTML = state.employers
+            .map((item) => `<option value="${item.id}">${escapeHtml(item.legal_name)} (${escapeHtml(item.affiliation_number)})</option>`)
+            .join('');
+    }
+
+    async function loadWorkers() {
+        setStatus('Chargement des travailleurs...');
         els.reloadBtn.disabled = true;
 
         try {
-            const response = await fetch('/api/employers');
+            const response = await fetch('/api/workers');
             if (!response.ok) {
-                throw new Error('Impossible de charger les employeurs.');
+                throw new Error('Impossible de charger les travailleurs.');
             }
 
-            state.employers = await response.json();
-            state.filtered = [...state.employers];
-            renderEmployers();
-            setStatus(`${state.employers.length} employeur(s) charge(s).`, 'ok');
+            state.workers = await response.json();
+            state.filtered = [...state.workers];
+            renderWorkers();
+            setStatus(`${state.workers.length} travailleur(s) charge(s).`, 'ok');
         } catch (error) {
             setStatus(error.message || 'Erreur de chargement.', 'error');
         } finally {
@@ -531,15 +539,15 @@
         }
     }
 
-    async function submitEmployer(event) {
+    async function submitWorker(event) {
         event.preventDefault();
         setStatus('Enregistrement en cours...');
         els.saveBtn.disabled = true;
 
-        const employerId = els.employerId.value;
+        const workerId = els.workerId.value;
         const payload = collectFormPayload();
-        const isEdit = Boolean(employerId);
-        const url = isEdit ? `/api/employers/${employerId}` : '/api/employers';
+        const isEdit = Boolean(workerId);
+        const url = isEdit ? `/api/workers/${workerId}` : '/api/workers';
         const method = isEdit ? 'PUT' : 'POST';
 
         try {
@@ -565,8 +573,8 @@
 
             clearForm();
             hideForm();
-            await loadEmployers();
-            setStatus(isEdit ? 'Employeur mis a jour.' : 'Employeur cree.', 'ok');
+            await loadWorkers();
+            setStatus(isEdit ? 'Travailleur mis a jour.' : 'Travailleur cree.', 'ok');
         } catch (error) {
             setStatus(error.message || 'Erreur de sauvegarde.', 'error');
         } finally {
@@ -574,8 +582,8 @@
         }
     }
 
-    async function deleteEmployer(id) {
-        const confirmed = confirm('Supprimer cet employeur ?');
+    async function deleteWorker(id) {
+        const confirmed = confirm('Supprimer ce travailleur ?');
         if (!confirmed) {
             return;
         }
@@ -583,7 +591,7 @@
         setStatus('Suppression en cours...');
 
         try {
-            const response = await fetch(`/api/employers/${id}`, {
+            const response = await fetch(`/api/workers/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Accept': 'application/json',
@@ -595,13 +603,13 @@
                 throw new Error('Suppression impossible.');
             }
 
-            if (String(els.employerId.value) === String(id)) {
+            if (String(els.workerId.value) === String(id)) {
                 clearForm();
                 hideForm();
             }
 
-            await loadEmployers();
-            setStatus('Employeur supprime.', 'ok');
+            await loadWorkers();
+            setStatus('Travailleur supprime.', 'ok');
         } catch (error) {
             setStatus(error.message || 'Erreur de suppression.', 'error');
         }
@@ -616,15 +624,15 @@
             .replaceAll("'", '&#039;');
     }
 
-    els.form.addEventListener('submit', submitEmployer);
+    els.form.addEventListener('submit', submitWorker);
     els.resetBtn.addEventListener('click', clearForm);
     els.closeFormBtn.addEventListener('click', () => {
         clearForm();
         hideForm();
     });
     els.toggleFormBtn.addEventListener('click', toggleAddForm);
-    els.searchInput.addEventListener('input', filterEmployers);
-    els.reloadBtn.addEventListener('click', loadEmployers);
+    els.searchInput.addEventListener('input', filterWorkers);
+    els.reloadBtn.addEventListener('click', loadWorkers);
 
     els.tableBody.addEventListener('click', (event) => {
         const target = event.target;
@@ -638,20 +646,30 @@
         }
 
         const id = Number(button.dataset.id);
-        const employer = state.employers.find((item) => item.id === id);
-        if (!employer) {
+        const worker = state.workers.find((item) => item.id === id);
+        if (!worker) {
             return;
         }
 
         if (button.dataset.action === 'edit') {
-            fillForm(employer);
+            fillForm(worker);
         }
 
         if (button.dataset.action === 'delete') {
-            deleteEmployer(id);
+            deleteWorker(id);
         }
     });
 
-    loadEmployers();
+    async function init() {
+        try {
+            await loadEmployers();
+            clearForm();
+            await loadWorkers();
+        } catch (error) {
+            setStatus(error.message || 'Erreur d initialisation.', 'error');
+        }
+    }
+
+    init();
 </script>
 @endpush
