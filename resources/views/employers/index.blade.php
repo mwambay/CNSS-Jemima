@@ -9,7 +9,7 @@
     .employer-page {
         display: grid;
         gap: 1rem;
-        grid-template-columns: 430px minmax(0, 1fr);
+        grid-template-columns: 1fr;
     }
 
     .panel {
@@ -131,6 +131,11 @@
         flex-wrap: wrap;
     }
 
+    .toolbar-actions {
+        display: inline-flex;
+        gap: .5rem;
+    }
+
     .toolbar .control {
         min-width: 220px;
         flex: 1;
@@ -219,6 +224,10 @@
         font-weight: 600;
     }
 
+    .panel-hidden {
+        display: none;
+    }
+
     .empty {
         padding: 1.2rem;
         text-align: center;
@@ -246,7 +255,7 @@
 
 @section('content')
     <div class="employer-page">
-        <article class="panel">
+        <article class="panel panel-hidden" id="employer-form-panel">
             <h2 id="form-title">Ajouter un employeur</h2>
             <form id="employer-form">
                 <input type="hidden" id="employer-id">
@@ -308,6 +317,7 @@
                 <div class="actions">
                     <button type="submit" class="btn btn-primary" id="save-btn">Enregistrer</button>
                     <button type="button" class="btn btn-outline" id="reset-btn">Reinitialiser</button>
+                    <button type="button" class="btn btn-outline" id="close-form-btn">Fermer</button>
                 </div>
             </form>
             <p id="status-message" class="status-text"></p>
@@ -317,7 +327,10 @@
             <div class="kpi" id="kpi-count">0 employeur</div>
             <div class="toolbar">
                 <input class="control" id="search-input" placeholder="Rechercher par raison sociale, affiliation, NIF...">
-                <button id="reload-btn" class="btn btn-outline" type="button">Rafraichir</button>
+                <div class="toolbar-actions">
+                    <button id="toggle-form-btn" class="btn btn-primary" type="button">Ajouter un employeur</button>
+                    <button id="reload-btn" class="btn btn-outline" type="button">Rafraichir</button>
+                </div>
             </div>
 
             <div class="table-wrap">
@@ -348,12 +361,15 @@
 
     const els = {
         form: document.getElementById('employer-form'),
+        formPanel: document.getElementById('employer-form-panel'),
         formTitle: document.getElementById('form-title'),
+        toggleFormBtn: document.getElementById('toggle-form-btn'),
         employerId: document.getElementById('employer-id'),
         searchInput: document.getElementById('search-input'),
         tableBody: document.getElementById('employer-table-body'),
         reloadBtn: document.getElementById('reload-btn'),
         resetBtn: document.getElementById('reset-btn'),
+        closeFormBtn: document.getElementById('close-form-btn'),
         saveBtn: document.getElementById('save-btn'),
         statusMessage: document.getElementById('status-message'),
         kpiCount: document.getElementById('kpi-count'),
@@ -384,16 +400,41 @@
         document.getElementById('status').value = 'ACTIVE';
         document.getElementById('verification_status').value = 'PENDING';
         els.formTitle.textContent = 'Ajouter un employeur';
+        els.toggleFormBtn.textContent = 'Ajouter un employeur';
         setStatus('');
     }
 
+    function showForm() {
+        els.formPanel.classList.remove('panel-hidden');
+        els.toggleFormBtn.textContent = 'Masquer formulaire';
+    }
+
+    function hideForm() {
+        els.formPanel.classList.add('panel-hidden');
+        els.toggleFormBtn.textContent = 'Ajouter un employeur';
+    }
+
+    function toggleAddForm() {
+        const isHidden = els.formPanel.classList.contains('panel-hidden');
+        if (isHidden) {
+            clearForm();
+            showForm();
+            return;
+        }
+
+        clearForm();
+        hideForm();
+    }
+
     function fillForm(employer) {
+        showForm();
         els.employerId.value = employer.id;
         formFields.forEach((field) => {
             const input = document.getElementById(field);
             input.value = employer[field] ?? '';
         });
         els.formTitle.textContent = `Modifier ${employer.legal_name}`;
+        els.toggleFormBtn.textContent = 'Masquer formulaire';
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -520,6 +561,7 @@
             }
 
             clearForm();
+            hideForm();
             await loadEmployers();
             setStatus(isEdit ? 'Employeur mis a jour.' : 'Employeur cree.', 'ok');
         } catch (error) {
@@ -551,6 +593,7 @@
 
             if (String(els.employerId.value) === String(id)) {
                 clearForm();
+                hideForm();
             }
 
             await loadEmployers();
@@ -571,6 +614,11 @@
 
     els.form.addEventListener('submit', submitEmployer);
     els.resetBtn.addEventListener('click', clearForm);
+    els.closeFormBtn.addEventListener('click', () => {
+        clearForm();
+        hideForm();
+    });
+    els.toggleFormBtn.addEventListener('click', toggleAddForm);
     els.searchInput.addEventListener('input', filterEmployers);
     els.reloadBtn.addEventListener('click', loadEmployers);
 
