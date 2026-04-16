@@ -202,6 +202,7 @@
             <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Tableau de bord</a>
             <a class="nav-link {{ request()->routeIs('employers.*') ? 'active' : '' }}" href="{{ route('employers.interface') }}">Employeurs</a>
             <a class="nav-link {{ request()->routeIs('workers.interface') ? 'active' : '' }}" href="{{ route('workers.interface') }}">Travailleurs</a>
+            <a class="nav-link {{ request()->routeIs('declarations.*') ? 'active' : '' }}" href="{{ route('declarations.interface') }}">Declarations</a>
         </nav>
     </aside>
 

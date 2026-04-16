@@ -7,18 +7,29 @@ use App\Http\Requests\UpdateWorkerRequest;
 use App\Models\Employment;
 use App\Models\Worker;
 use Carbon\CarbonInterface;
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 class WorkerController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $workers = Worker::query()
+        $query = Worker::query()
             ->with(['employments' => function ($query): void {
                 $query->with('employer')->orderByDesc('start_date');
-            }])
+            }]);
+
+        if ($request->filled('employer_id')) {
+            $employerId = (int) $request->query('employer_id');
+            $query->whereHas('employments', function ($employmentQuery) use ($employerId): void {
+                $employmentQuery->where('employer_id', $employerId)
+                    ->where('is_declared_active', true);
+            });
+        }
+
+        $workers = $query
             ->orderBy('id')
             ->get()
             ->map(fn (Worker $worker): array => $this->toPayload($worker));
