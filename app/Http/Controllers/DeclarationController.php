@@ -8,6 +8,7 @@ use App\Http\Requests\UpsertDeclarationLineRequest;
 use App\Models\Declaration;
 use App\Models\DeclarationLine;
 use App\Models\Employment;
+use App\Services\ContributionCalculationService;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Http\JsonResponse;
@@ -17,6 +18,10 @@ use Illuminate\Support\Facades\DB;
 
 class DeclarationController extends Controller
 {
+    public function __construct(private readonly ContributionCalculationService $contributionCalculationService)
+    {
+    }
+
     public function index(Request $request): JsonResponse
     {
         $query = Declaration::query()
@@ -75,7 +80,7 @@ class DeclarationController extends Controller
         $declaration->load([
             'employer',
             'declarationLines' => function ($query): void {
-                $query->with('worker')->orderBy('id');
+                $query->with(['worker', 'contributionCalc.rate'])->orderBy('id');
             },
         ]);
 
@@ -190,7 +195,7 @@ class DeclarationController extends Controller
         $declaration->refresh()->load([
             'employer',
             'declarationLines' => function ($query): void {
-                $query->with('worker')->orderBy('id');
+                $query->with(['worker', 'contributionCalc.rate'])->orderBy('id');
             },
         ]);
 
@@ -213,7 +218,25 @@ class DeclarationController extends Controller
         $declaration->refresh()->load([
             'employer',
             'declarationLines' => function ($query): void {
-                $query->with('worker')->orderBy('id');
+                $query->with(['worker', 'contributionCalc.rate'])->orderBy('id');
+            },
+        ]);
+
+        return response()->json($this->toDetails($declaration));
+    }
+
+    public function recalculate(Declaration $declaration): JsonResponse
+    {
+        $this->ensureDraft($declaration);
+
+        DB::transaction(function () use ($declaration): void {
+            $this->recalculateTotals($declaration);
+        });
+
+        $declaration->refresh()->load([
+            'employer',
+            'declarationLines' => function ($query): void {
+                $query->with(['worker', 'contributionCalc.rate'])->orderBy('id');
             },
         ]);
 
@@ -229,15 +252,7 @@ class DeclarationController extends Controller
 
     private function recalculateTotals(Declaration $declaration): void
     {
-        $salary = (float) $declaration->declarationLines()->sum('gross_salary');
-        $contributionBase = (float) $declaration->declarationLines()->sum('contributable_salary');
-
-        $declaration->update([
-            'total_declared_salary' => $salary,
-            // Placeholder: en attendant le moteur de calcul de cotisations,
-            // on conserve la base contributive comme total declare.
-            'total_declared_contribution' => $contributionBase,
-        ]);
+        $this->contributionCalculationService->recalculateDeclaration($declaration);
     }
 
     private function toSummary(Declaration $declaration): array
@@ -268,6 +283,9 @@ class DeclarationController extends Controller
         return [
             ...$this->toSummary($declaration),
             'lines' => $declaration->declarationLines->map(function (DeclarationLine $line): array {
+                $contributionCalc = $line->contributionCalc;
+                $rate = $contributionCalc?->rate;
+
                 return [
                     'id' => $line->id,
                     'worker_id' => $line->worker_id,
@@ -278,6 +296,15 @@ class DeclarationController extends Controller
                     'worked_days' => $line->worked_days,
                     'anomaly_flag' => $line->anomaly_flag,
                     'anomaly_reason' => $line->anomaly_reason,
+                    'employer_amount' => $contributionCalc?->employer_amount,
+                    'worker_amount' => $contributionCalc?->worker_amount,
+                    'total_contribution' => $contributionCalc?->total_amount,
+                    'applied_rate' => $rate === null ? null : [
+                        'id' => $rate->id,
+                        'regime_code' => $rate->regime_code,
+                        'employer_rate' => $rate->employer_rate,
+                        'worker_rate' => $rate->worker_rate,
+                    ],
                 ];
             })->values(),
         ];

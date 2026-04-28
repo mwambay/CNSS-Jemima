@@ -23,6 +23,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/employeurs/{employer}', [EmployerInterfaceController::class, 'show'])->name('employers.show');
     Route::get('/travailleurs', [WorkerInterfaceController::class, 'index'])->name('workers.interface');
     Route::get('/declarations', [DeclarationInterfaceController::class, 'index'])->name('declarations.interface');
+    Route::get('/declarations/{declaration}', [DeclarationInterfaceController::class, 'show'])->name('declarations.show');
 
     Route::prefix('api')
         ->middleware('role:ADMIN')
@@ -33,6 +34,7 @@ Route::middleware('auth')->group(function (): void {
             Route::post('declarations/{declaration}/submit', [DeclarationController::class, 'submit']);
             Route::post('declarations/{declaration}/validate', [DeclarationController::class, 'validateDeclaration']);
             Route::post('declarations/{declaration}/reject', [DeclarationController::class, 'rejectDeclaration']);
+            Route::post('declarations/{declaration}/recalculate', [DeclarationController::class, 'recalculate']);
             Route::post('declarations/{declaration}/lines', [DeclarationController::class, 'upsertLine']);
             Route::delete('declarations/{declaration}/lines/{declarationLine}', [DeclarationController::class, 'destroyLine']);
         });

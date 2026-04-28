@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             FraudRuleSeeder::class,
+            ContributionRateSeeder::class,
         ]);
 
         $admin = User::query()->updateOrCreate(

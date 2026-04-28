@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Declaration;
 use App\Models\Employer;
 use Illuminate\View\View;
 
@@ -17,6 +18,18 @@ class DeclarationInterfaceController extends Controller
 
         return view('declarations.index', [
             'employers' => $employers,
+            'canManageDeclarations' => $canManageDeclarations,
+        ]);
+    }
+
+    public function show(Declaration $declaration): View
+    {
+        $canManageDeclarations = auth()->user()?->roles()->where('code', 'ADMIN')->exists() ?? false;
+
+        $declaration->load('employer');
+
+        return view('declarations.show', [
+            'declaration' => $declaration,
             'canManageDeclarations' => $canManageDeclarations,
         ]);
     }

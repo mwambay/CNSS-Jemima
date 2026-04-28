@@ -66,10 +66,6 @@
         gap: .35rem;
     }
 
-    .field.full {
-        grid-column: 1 / -1;
-    }
-
     .field label {
         color: #344054;
         font-size: .82rem;
@@ -102,6 +98,10 @@
         font-size: .84rem;
         font-weight: 600;
         cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .btn:disabled {
@@ -298,67 +298,6 @@
                 </table>
             </div>
         </article>
-
-        <article class="panel is-hidden" id="declaration-details-panel">
-            <div class="toolbar">
-                <h2 id="details-title">Declaration</h2>
-                <div class="toolbar-right actions">
-                    <button id="toggle-line-form-btn" class="btn btn-primary" type="button">Ajouter ligne</button>
-                    <button id="submit-declaration-btn" class="btn btn-primary" type="button">Soumettre</button>
-                    <button id="validate-declaration-btn" class="btn btn-outline" type="button">Valider</button>
-                    <button id="reject-declaration-btn" class="btn btn-danger" type="button">Rejeter</button>
-                </div>
-            </div>
-
-            <div id="line-form-block" class="is-hidden">
-                <div class="grid">
-                    <div class="field">
-                        <label for="line_worker_id">Travailleur</label>
-                        <select class="control" id="line_worker_id" name="line_worker_id" required></select>
-                    </div>
-                    <div class="field">
-                        <label for="line_gross_salary">Salaire brut</label>
-                        <input class="control" id="line_gross_salary" type="number" min="0" step="0.01" required>
-                    </div>
-                    <div class="field">
-                        <label for="line_contributable_salary">Salaire cotisable</label>
-                        <input class="control" id="line_contributable_salary" type="number" min="0" step="0.01" required>
-                    </div>
-                    <div class="field">
-                        <label for="line_worked_days">Jours travailles</label>
-                        <input class="control" id="line_worked_days" type="number" min="0" max="31">
-                    </div>
-                    <div class="field full">
-                        <label for="line_anomaly_reason">Motif anomalie (optionnel)</label>
-                        <input class="control" id="line_anomaly_reason" maxlength="255">
-                    </div>
-                </div>
-
-                <div class="actions" style="margin-top:.8rem;">
-                    <button id="save-line-btn" class="btn btn-primary" type="button">Ajouter / Mettre a jour ligne</button>
-                    <button id="cancel-line-form-btn" class="btn btn-outline" type="button">Annuler</button>
-                </div>
-            </div>
-
-            <p id="line-status" class="status-text"></p>
-
-            <div id="lines-table-block" class="table-wrap">
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Travailleur</th>
-                        <th>Numero SS</th>
-                        <th>Brut</th>
-                        <th>Cotisable</th>
-                        <th>Jours</th>
-                        <th>Anomalie</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody id="lines-table-body"></tbody>
-                </table>
-            </div>
-        </article>
     @endif
 </div>
 @endsection
@@ -368,11 +307,10 @@
 <script>
     const csrfToken = '{{ csrf_token() }}';
     const employers = @json($employers);
+    const declarationShowTemplate = @json(route('declarations.show', ['declaration' => '__ID__']));
 
     const state = {
         declarations: [],
-        selectedDeclarationId: null,
-        selectedDeclaration: null,
     };
 
     const els = {
@@ -384,36 +322,15 @@
         declarationStatus: document.getElementById('declaration-status'),
         declarationsTableBody: document.getElementById('declarations-table-body'),
         employerSelect: document.getElementById('employer_id'),
-        detailsPanel: document.getElementById('declaration-details-panel'),
-        detailsTitle: document.getElementById('details-title'),
-        lineWorkerSelect: document.getElementById('line_worker_id'),
-        lineGrossSalary: document.getElementById('line_gross_salary'),
-        lineContributableSalary: document.getElementById('line_contributable_salary'),
-        lineWorkedDays: document.getElementById('line_worked_days'),
-        lineAnomalyReason: document.getElementById('line_anomaly_reason'),
-        lineFormBlock: document.getElementById('line-form-block'),
-        linesTableBlock: document.getElementById('lines-table-block'),
-        toggleLineFormBtn: document.getElementById('toggle-line-form-btn'),
-        cancelLineFormBtn: document.getElementById('cancel-line-form-btn'),
-        saveLineBtn: document.getElementById('save-line-btn'),
-        lineStatus: document.getElementById('line-status'),
-        linesTableBody: document.getElementById('lines-table-body'),
-        submitDeclarationBtn: document.getElementById('submit-declaration-btn'),
-        validateDeclarationBtn: document.getElementById('validate-declaration-btn'),
-        rejectDeclarationBtn: document.getElementById('reject-declaration-btn'),
     };
 
-    function setStatus(target, message, type = '') {
-        target.textContent = message;
-        target.className = type ? `status-text ${type}` : 'status-text';
+    function getDeclarationShowUrl(id) {
+        return declarationShowTemplate.replace('__ID__', String(id));
     }
 
     function setDeclarationStatus(message, type = '') {
-        setStatus(els.declarationStatus, message, type);
-    }
-
-    function setLineStatus(message, type = '') {
-        setStatus(els.lineStatus, message, type);
+        els.declarationStatus.textContent = message;
+        els.declarationStatus.className = type ? `status-text ${type}` : 'status-text';
     }
 
     function resetDeclarationForm() {
@@ -456,97 +373,12 @@
                 <td>${escapeHtml(item.lines_count ?? 0)}</td>
                 <td>
                     <div class="actions">
-                        <button class="btn btn-outline" data-action="open" data-id="${item.id}" type="button">Ouvrir</button>
+                        <a class="btn btn-outline" href="${escapeHtml(getDeclarationShowUrl(item.id))}">Ouvrir</a>
                         ${item.status === 'DRAFT' ? `<button class="btn btn-danger" data-action="delete" data-id="${item.id}" type="button">Supprimer</button>` : ''}
                     </div>
                 </td>
             </tr>
         `).join('');
-    }
-
-    function renderLines() {
-        if (!state.selectedDeclaration) {
-            els.linesTableBody.innerHTML = '<tr><td colspan="7" class="empty">Selectionnez une declaration.</td></tr>';
-            return;
-        }
-
-        const isDraft = state.selectedDeclaration.status === 'DRAFT';
-
-        const lines = state.selectedDeclaration.lines || [];
-        if (lines.length === 0) {
-            els.linesTableBody.innerHTML = '<tr><td colspan="7" class="empty">Aucune ligne dans cette declaration.</td></tr>';
-            return;
-        }
-
-        els.linesTableBody.innerHTML = lines.map((line) => `
-            <tr>
-                <td>${escapeHtml(line.worker_name || '-')}</td>
-                <td>${escapeHtml(line.worker_ssn || '-')}</td>
-                <td>${escapeHtml(line.gross_salary ?? '0')}</td>
-                <td>${escapeHtml(line.contributable_salary ?? '0')}</td>
-                <td>${escapeHtml(line.worked_days ?? '-')}</td>
-                <td>${line.anomaly_flag ? escapeHtml(line.anomaly_reason || 'Oui') : '-'}</td>
-                <td>
-                    ${isDraft ? `<button class="btn btn-danger" data-action="line-delete" data-id="${line.id}" type="button">Supprimer</button>` : '-'}
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    function showLineForm() {
-        els.lineFormBlock.classList.remove('is-hidden');
-        els.linesTableBlock.classList.add('is-hidden');
-        els.toggleLineFormBtn.textContent = 'Voir lignes';
-    }
-
-    function showLinesTable() {
-        els.lineFormBlock.classList.add('is-hidden');
-        els.linesTableBlock.classList.remove('is-hidden');
-        els.toggleLineFormBtn.textContent = 'Ajouter ligne';
-    }
-
-    function clearLineForm() {
-        els.lineGrossSalary.value = '';
-        els.lineContributableSalary.value = '';
-        els.lineWorkedDays.value = '';
-        els.lineAnomalyReason.value = '';
-    }
-
-    function updateWorkflowButtons() {
-        const status = state.selectedDeclaration?.status;
-        const isDraft = status === 'DRAFT';
-        const isSubmitted = status === 'SUBMITTED';
-
-        els.submitDeclarationBtn.disabled = !isDraft;
-        els.saveLineBtn.disabled = !isDraft;
-        els.toggleLineFormBtn.disabled = !isDraft;
-        if (!isDraft) {
-            showLinesTable();
-        }
-        els.validateDeclarationBtn.disabled = !isSubmitted;
-        els.rejectDeclarationBtn.disabled = !isSubmitted;
-        els.lineWorkerSelect.disabled = !isDraft;
-        els.lineGrossSalary.disabled = !isDraft;
-        els.lineContributableSalary.disabled = !isDraft;
-        els.lineWorkedDays.disabled = !isDraft;
-        els.lineAnomalyReason.disabled = !isDraft;
-    }
-
-    async function loadWorkersForSelectedEmployer() {
-        if (!state.selectedDeclaration) {
-            return;
-        }
-
-        const response = await fetch(`/api/workers?employer_id=${state.selectedDeclaration.employer_id}`);
-        if (!response.ok) {
-            throw new Error('Impossible de charger les travailleurs de cet employeur.');
-        }
-
-        const workers = await response.json();
-        els.lineWorkerSelect.innerHTML = workers.map((worker) => {
-            const label = `${worker.first_name || ''} ${worker.last_name || ''}`.trim();
-            return `<option value="${worker.id}">${escapeHtml(label || '-') } (${escapeHtml(worker.social_security_number || '-')})</option>`;
-        }).join('');
     }
 
     async function loadDeclarations() {
@@ -567,30 +399,6 @@
         } catch (error) {
             setDeclarationStatus(error.message || 'Erreur de chargement.', 'error');
         }
-    }
-
-    async function openDeclaration(id) {
-        setLineStatus('Chargement de la declaration...');
-
-        const response = await fetch(`/api/declarations/${id}`, {
-            headers: { 'Accept': 'application/json' },
-        });
-
-        if (!response.ok) {
-            throw new Error('Impossible de charger cette declaration.');
-        }
-
-        state.selectedDeclaration = await response.json();
-        state.selectedDeclarationId = state.selectedDeclaration.id;
-
-        els.detailsPanel.classList.remove('is-hidden');
-        els.detailsTitle.textContent = `Declaration ${String(state.selectedDeclaration.period_month).padStart(2, '0')}/${state.selectedDeclaration.period_year} - ${state.selectedDeclaration.employer_name}`;
-
-        await loadWorkersForSelectedEmployer();
-        renderLines();
-        updateWorkflowButtons();
-
-        setLineStatus('Declaration ouverte.', 'ok');
     }
 
     async function createDeclaration(event) {
@@ -627,11 +435,7 @@
             }
 
             const created = await response.json();
-            toggleDeclarationForm(false);
-            resetDeclarationForm();
-            await loadDeclarations();
-            await openDeclaration(created.id);
-            setDeclarationStatus('Declaration creee.', 'ok');
+            window.location.href = getDeclarationShowUrl(created.id);
         } catch (error) {
             setDeclarationStatus(error.message || 'Erreur de creation.', 'error');
         } finally {
@@ -660,117 +464,8 @@
             return;
         }
 
-        if (state.selectedDeclarationId === id) {
-            state.selectedDeclaration = null;
-            state.selectedDeclarationId = null;
-            els.detailsPanel.classList.add('is-hidden');
-        }
-
         await loadDeclarations();
         setDeclarationStatus('Declaration supprimee.', 'ok');
-    }
-
-    async function saveLine() {
-        if (!state.selectedDeclaration) {
-            return;
-        }
-
-        setLineStatus('Enregistrement de la ligne...');
-        els.saveLineBtn.disabled = true;
-
-        try {
-            const anomalyReason = String(els.lineAnomalyReason.value || '').trim();
-            const payload = {
-                worker_id: Number(els.lineWorkerSelect.value),
-                gross_salary: Number(els.lineGrossSalary.value),
-                contributable_salary: Number(els.lineContributableSalary.value),
-                worked_days: els.lineWorkedDays.value ? Number(els.lineWorkedDays.value) : null,
-                anomaly_flag: anomalyReason !== '',
-                anomaly_reason: anomalyReason || null,
-            };
-
-            const response = await fetch(`/api/declarations/${state.selectedDeclaration.id}/lines`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                },
-                body: JSON.stringify(payload),
-            });
-
-            if (!response.ok) {
-                const message = response.status === 422 ? (await response.text()) : 'Echec enregistrement ligne.';
-                throw new Error(message || 'Echec enregistrement ligne.');
-            }
-
-            state.selectedDeclaration = await response.json();
-            renderLines();
-            updateWorkflowButtons();
-            clearLineForm();
-            showLinesTable();
-            await loadDeclarations();
-            setLineStatus('Ligne enregistree.', 'ok');
-        } catch (error) {
-            setLineStatus(error.message || 'Erreur enregistrement ligne.', 'error');
-        } finally {
-            els.saveLineBtn.disabled = false;
-        }
-    }
-
-    async function deleteLine(lineId) {
-        if (!state.selectedDeclaration) {
-            return;
-        }
-
-        const response = await fetch(`/api/declarations/${state.selectedDeclaration.id}/lines/${lineId}`, {
-            method: 'DELETE',
-            headers: {
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
-            },
-        });
-
-        if (!response.ok) {
-            setLineStatus('Suppression de ligne impossible.', 'error');
-            return;
-        }
-
-        state.selectedDeclaration = await response.json();
-        renderLines();
-        updateWorkflowButtons();
-        await loadDeclarations();
-        setLineStatus('Ligne supprimee.', 'ok');
-    }
-
-    async function changeWorkflow(action) {
-        if (!state.selectedDeclaration) {
-            return;
-        }
-
-        const endpoint = `/api/declarations/${state.selectedDeclaration.id}/${action}`;
-        const payload = action === 'reject'
-            ? { validation_message: 'Declaration rejetee par controle.' }
-            : {};
-
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
-            },
-            body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-            setLineStatus('Action workflow impossible.', 'error');
-            return;
-        }
-
-        await loadDeclarations();
-        await openDeclaration(state.selectedDeclaration.id);
-        setLineStatus('Workflow mis a jour.', 'ok');
     }
 
     function escapeHtml(value) {
@@ -791,25 +486,6 @@
     els.toggleDeclarationFormBtn.addEventListener('click', () => toggleDeclarationForm());
     els.cancelDeclarationFormBtn.addEventListener('click', () => toggleDeclarationForm(false));
     els.declarationForm.addEventListener('submit', createDeclaration);
-    els.saveLineBtn.addEventListener('click', saveLine);
-    els.toggleLineFormBtn.addEventListener('click', () => {
-        const shouldShowForm = els.lineFormBlock.classList.contains('is-hidden');
-
-        if (shouldShowForm) {
-            showLineForm();
-            return;
-        }
-
-        showLinesTable();
-    });
-    els.cancelLineFormBtn.addEventListener('click', () => {
-        clearLineForm();
-        showLinesTable();
-        setLineStatus('');
-    });
-    els.submitDeclarationBtn.addEventListener('click', () => changeWorkflow('submit'));
-    els.validateDeclarationBtn.addEventListener('click', () => changeWorkflow('validate'));
-    els.rejectDeclarationBtn.addEventListener('click', () => changeWorkflow('reject'));
 
     els.declarationsTableBody.addEventListener('click', async (event) => {
         const target = event.target;
@@ -817,45 +493,17 @@
             return;
         }
 
-        const button = target.closest('button[data-action]');
+        const button = target.closest('button[data-action="delete"]');
         if (!button) {
             return;
         }
 
-        const action = button.dataset.action;
         const id = Number(button.dataset.id);
-
-        if (action === 'open') {
-            try {
-                await openDeclaration(id);
-            } catch (error) {
-                setLineStatus(error.message || 'Erreur ouverture declaration.', 'error');
-            }
-        }
-
-        if (action === 'delete') {
-            await deleteDeclaration(id);
-        }
-    });
-
-    els.linesTableBody.addEventListener('click', async (event) => {
-        const target = event.target;
-        if (!(target instanceof HTMLElement)) {
-            return;
-        }
-
-        const button = target.closest('button[data-action="line-delete"]');
-        if (!button) {
-            return;
-        }
-
-        const lineId = Number(button.dataset.id);
-        await deleteLine(lineId);
+        await deleteDeclaration(id);
     });
 
     initEmployers();
     resetDeclarationForm();
-    showLinesTable();
     loadDeclarations();
 </script>
 @endpush
