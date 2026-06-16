@@ -57,3 +57,28 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+
+server {
+    listen 80;
+    server_name client-jemima.fullstry.com;  # ou ton IP si pas de domaine
+
+    root /var/www/jemima-cnss/public;
+    index index.php;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;  # adapte si autre version
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
