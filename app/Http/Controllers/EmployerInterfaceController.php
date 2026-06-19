@@ -15,7 +15,7 @@ class EmployerInterfaceController extends Controller
 
     public function show(Employer $employer): View
     {
-        $canManageWorkers = auth()->user()?->roles()->where('code', 'ADMIN')->exists() ?? false;
+        $canManageWorkers = auth()->user()?->roles()->whereIn('code', ['ADMIN', 'AGENT_SES'])->exists() ?? false;
 
         $employer->load([
             'employments' => function ($query): void {

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AffiliationRequestController;
 use App\Http\Controllers\DeclarationController;
 use App\Http\Controllers\DeclarationInterfaceController;
 use App\Http\Controllers\EmployerController;
@@ -8,6 +9,10 @@ use App\Http\Controllers\EmployerInterfaceController;
 use App\Http\Controllers\WorkerController;
 use App\Http\Controllers\WorkerInterfaceController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/affiliation', [AffiliationRequestController::class, 'create'])->name('affiliation.create');
+Route::post('/affiliation', [AffiliationRequestController::class, 'store'])->name('affiliation.store');
+Route::get('/affiliation/{affiliationRequest}/soumise', [AffiliationRequestController::class, 'submitted'])->name('affiliation.submitted');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -25,8 +30,15 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/declarations', [DeclarationInterfaceController::class, 'index'])->name('declarations.interface');
     Route::get('/declarations/{declaration}', [DeclarationInterfaceController::class, 'show'])->name('declarations.show');
 
+    Route::middleware('role:ADMIN,AGENT_SES')->group(function (): void {
+        Route::get('/affiliations', [AffiliationRequestController::class, 'index'])->name('affiliations.index');
+        Route::get('/affiliations/{affiliationRequest}', [AffiliationRequestController::class, 'show'])->name('affiliations.show');
+        Route::post('/affiliations/{affiliationRequest}/approve', [AffiliationRequestController::class, 'approve'])->name('affiliations.approve');
+        Route::post('/affiliations/{affiliationRequest}/reject', [AffiliationRequestController::class, 'reject'])->name('affiliations.reject');
+    });
+
     Route::prefix('api')
-        ->middleware('role:ADMIN')
+        ->middleware('role:ADMIN,AGENT_SES')
         ->group(function (): void {
             Route::apiResource('employers', EmployerController::class);
             Route::apiResource('workers', WorkerController::class);

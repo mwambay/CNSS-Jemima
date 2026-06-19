@@ -16,7 +16,7 @@
         background: #fff;
         border: 1px solid #e4e7ec;
         border-radius: 16px;
-        box-shadow: 0 1px 3px rgba(16, 24, 40, 0.1), 0 1px 2px rgba(16, 24, 40, 0.06);
+        box-shadow: 0 1px 3px rgba(6, 52, 109, 0.1), 0 1px 2px rgba(6, 52, 109, 0.06);
         padding: 1rem;
     }
 
@@ -64,7 +64,7 @@
     }
 
     .btn-primary {
-        background: #465fff;
+        background: #06346d;
         color: #fff;
     }
 
@@ -90,8 +90,8 @@
     }
 
     .badge-draft {
-        color: #3641f5;
-        background: #ecf3ff;
+        color: #06346d;
+        background: #e7f0fa;
     }
 
     .badge-submitted {
@@ -173,8 +173,8 @@
 
     .control:focus {
         outline: 0;
-        border-color: #9cb9ff;
-        box-shadow: 0 0 0 4px rgba(70, 95, 255, 0.12);
+        border-color: #008f83;
+        box-shadow: 0 0 0 4px rgba(0, 143, 131, 0.13);
     }
 
     .actions {

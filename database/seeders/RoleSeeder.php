@@ -14,6 +14,7 @@ class RoleSeeder extends Seeder
     {
         $roles = [
             ['code' => 'ADMIN', 'label' => 'Administrateur'],
+            ['code' => 'AGENT_SES', 'label' => 'Agent SES'],
             ['code' => 'CONTROLE', 'label' => 'Controle'],
             ['code' => 'RECOUVREMENT', 'label' => 'Recouvrement'],
             ['code' => 'AUDIT', 'label' => 'Audit'],

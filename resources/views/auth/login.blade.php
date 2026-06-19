@@ -9,9 +9,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --brand-100: #dde9ff;
-            --brand-500: #465fff;
-            --brand-600: #3641f5;
+            --brand-100: #d6e8f4;
+            --brand-500: #06346d;
+            --brand-600: #052b5b;
+            --brand-accent: #008f83;
+            --brand-accent-soft: #e4f7f3;
             --gray-50: #f9fafb;
             --gray-200: #e4e7ec;
             --gray-300: #d0d5dd;
@@ -30,9 +32,9 @@
             display: grid;
             place-items: center;
             background:
-                radial-gradient(circle at 15% 0%, rgba(70,95,255,.20), transparent 35%),
-                radial-gradient(circle at 85% 20%, rgba(122,90,248,.16), transparent 30%),
-                var(--gray-50);
+                radial-gradient(circle at 15% 0%, rgba(0,143,131,.16), transparent 35%),
+                radial-gradient(circle at 85% 20%, rgba(6,52,109,.14), transparent 30%),
+                #f4f8f9;
             color: var(--gray-900);
             padding: 1rem;
         }
@@ -43,7 +45,24 @@
             border: 1px solid var(--gray-200);
             border-radius: 16px;
             padding: 1.2rem;
-            box-shadow: 0 16px 34px rgba(16,24,40,.08);
+            box-shadow: 0 16px 34px rgba(6,52,109,.10);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: .8rem;
+            margin-bottom: 1rem;
+        }
+
+        .brand img {
+            width: 72px;
+            height: 72px;
+            object-fit: contain;
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            padding: .25rem;
+            background: #fff;
         }
 
         h1 {
@@ -80,8 +99,8 @@
 
         .control:focus {
             outline: 0;
-            border-color: var(--brand-100);
-            box-shadow: 0 0 0 4px rgba(70, 95, 255, .12);
+            border-color: var(--brand-accent);
+            box-shadow: 0 0 0 4px rgba(0, 143, 131, .13);
         }
 
         .btn {
@@ -119,8 +138,13 @@
 </head>
 <body>
 <div class="card">
-    <h1>Connexion CNSS</h1>
-    <p class="sub">Accedez a la console de gestion.</p>
+    <div class="brand">
+        <img src="{{ asset('images/logo-CNSS.png') }}" alt="Logo CNSS">
+        <div>
+            <h1>Connexion CNSS</h1>
+            <p class="sub">Accedez a la console de gestion.</p>
+        </div>
+    </div>
 
     @if ($errors->any())
         <div class="error">{{ $errors->first() }}</div>

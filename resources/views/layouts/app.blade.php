@@ -9,11 +9,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --brand-50: #ecf3ff;
-            --brand-100: #dde9ff;
-            --brand-300: #9cb9ff;
-            --brand-500: #465fff;
-            --brand-600: #3641f5;
+            --brand-50: #e7f0fa;
+            --brand-100: #d6e8f4;
+            --brand-300: #8acdc4;
+            --brand-500: #06346d;
+            --brand-600: #052b5b;
+            --brand-accent: #008f83;
+            --brand-accent-soft: #e4f7f3;
             --gray-50: #f9fafb;
             --gray-100: #f2f4f7;
             --gray-200: #e4e7ec;
@@ -23,8 +25,8 @@
             --gray-700: #344054;
             --gray-900: #101828;
             --error-500: #f04438;
-            --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.05);
-            --shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.1), 0 1px 2px rgba(16, 24, 40, 0.06);
+            --shadow-xs: 0 1px 2px rgba(6, 52, 109, 0.05);
+            --shadow-sm: 0 1px 3px rgba(6, 52, 109, 0.1), 0 1px 2px rgba(6, 52, 109, 0.06);
         }
 
         * { box-sizing: border-box; }
@@ -33,7 +35,7 @@
             margin: 0;
             font-family: Outfit, sans-serif;
             color: var(--gray-900);
-            background: var(--gray-50);
+            background: #f4f8f9;
         }
 
         .app {
@@ -59,17 +61,21 @@
             margin-bottom: 1rem;
         }
 
-        .brand-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 99px;
-            background: linear-gradient(130deg, var(--brand-500), #7a5af8);
+        .brand-logo {
+            width: 54px;
+            height: 54px;
+            border-radius: 8px;
+            object-fit: contain;
+            border: 1px solid var(--gray-200);
+            background: #fff;
+            padding: .22rem;
         }
 
         .brand-name {
             font-size: 1rem;
             font-weight: 700;
             letter-spacing: .01em;
+            color: var(--brand-500);
         }
 
         .nav {
@@ -175,6 +181,19 @@
 
         .content {
             padding: 1.1rem;
+            min-width: 0;
+            overflow-x: hidden;
+        }
+
+        .content > *,
+        .content .panel,
+        .content .table-wrap {
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .content .table-wrap {
+            width: 100%;
         }
 
         @media (max-width: 1000px) {
@@ -194,12 +213,13 @@
 <div class="app">
     <aside class="sidebar">
         <div class="brand">
-            <span class="brand-dot"></span>
-            <span class="brand-name">CNSS Console</span>
+            <img class="brand-logo" src="{{ asset('images/logo-CNSS.png') }}" alt="Logo CNSS">
+            <span class="brand-name">Console CNSS</span>
         </div>
 
         <nav class="nav">
             <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Tableau de bord</a>
+            <a class="nav-link {{ request()->routeIs('affiliations.*') ? 'active' : '' }}" href="{{ route('affiliations.index') }}">Affiliations</a>
             <a class="nav-link {{ request()->routeIs('employers.*') ? 'active' : '' }}" href="{{ route('employers.interface') }}">Employeurs</a>
             <a class="nav-link {{ request()->routeIs('workers.interface') ? 'active' : '' }}" href="{{ route('workers.interface') }}">Travailleurs</a>
             <a class="nav-link {{ request()->routeIs('declarations.*') ? 'active' : '' }}" href="{{ route('declarations.interface') }}">Declarations</a>
