@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreDeclarationRequest;
-use App\Http\Requests\RecordGlobalContributionRequest;
 use App\Http\Requests\UpdateDeclarationRequest;
 use App\Http\Requests\UpsertDeclarationLineRequest;
 use App\Models\Declaration;
@@ -255,16 +254,36 @@ class DeclarationController extends Controller
         return response()->json($this->toDetails($declaration));
     }
 
-    public function recordGlobalContribution(RecordGlobalContributionRequest $request, Declaration $declaration): JsonResponse
+    public function previewGlobalContribution(Declaration $declaration): JsonResponse
     {
         $this->ensureDraft($declaration);
 
-        $amount = round((float) $request->validated('amount'), 2);
+        return response()->json([
+            'calculation' => $this->contributionCalculationService->previewGlobalContribution($declaration),
+        ]);
+    }
+
+    public function recordGlobalContribution(Request $request, Declaration $declaration): JsonResponse
+    {
+        $this->ensureDraft($declaration);
+
+        $data = $request->validate([
+            'contributed_amount' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $calculation = $this->contributionCalculationService->previewGlobalContribution($declaration);
+        $contributedAmount = round((float) $data['contributed_amount'], 2);
 
         $declaration->update([
             'contribution_entry_mode' => 'GLOBAL',
-            'global_contribution_amount' => $amount,
-            'total_declared_contribution' => $amount,
+            'global_contribution_amount' => $contributedAmount,
+            'global_amount_due' => $calculation['amount_due'],
+            'global_salary_envelope' => $calculation['salary_envelope'],
+            'global_employer_rate' => $calculation['employer_rate'],
+            'global_worker_rate' => $calculation['worker_rate'],
+            'global_worker_count' => $calculation['worker_count'],
+            'total_declared_salary' => $calculation['salary_envelope'],
+            'total_declared_contribution' => $contributedAmount,
         ]);
 
         $declaration->refresh()->load([
@@ -285,6 +304,11 @@ class DeclarationController extends Controller
             $declaration->update([
                 'contribution_entry_mode' => 'DETAILED',
                 'global_contribution_amount' => null,
+                'global_amount_due' => null,
+                'global_salary_envelope' => null,
+                'global_employer_rate' => null,
+                'global_worker_rate' => null,
+                'global_worker_count' => null,
             ]);
 
             if ($declaration->declarationLines()->exists()) {
@@ -336,6 +360,13 @@ class DeclarationController extends Controller
             'status' => $declaration->status,
             'contribution_entry_mode' => $declaration->contribution_entry_mode ?? 'DETAILED',
             'global_contribution_amount' => $declaration->global_contribution_amount,
+            'global_amount_due' => $declaration->global_amount_due,
+            'global_contribution_difference' => $this->globalContributionDifference($declaration),
+            'global_contribution_status' => $this->globalContributionStatus($declaration),
+            'global_salary_envelope' => $declaration->global_salary_envelope,
+            'global_employer_rate' => $declaration->global_employer_rate,
+            'global_worker_rate' => $declaration->global_worker_rate,
+            'global_worker_count' => $declaration->global_worker_count,
             'due_date' => $dueDateValue,
             'submitted_at' => $declaration->submitted_at?->format('Y-m-d H:i:s'),
             'total_declared_salary' => $declaration->total_declared_salary,
@@ -375,5 +406,32 @@ class DeclarationController extends Controller
                 ];
             })->values(),
         ];
+    }
+
+    private function globalContributionDifference(Declaration $declaration): ?float
+    {
+        if ($declaration->global_amount_due === null || $declaration->global_contribution_amount === null) {
+            return null;
+        }
+
+        return round(
+            (float) $declaration->global_contribution_amount - (float) $declaration->global_amount_due,
+            2
+        );
+    }
+
+    private function globalContributionStatus(Declaration $declaration): ?string
+    {
+        $difference = $this->globalContributionDifference($declaration);
+
+        if ($difference === null) {
+            return null;
+        }
+
+        if (abs($difference) < 0.01) {
+            return 'CONFORME';
+        }
+
+        return $difference < 0 ? 'INSUFFISANT' : 'SUPERIEUR';
     }
 }

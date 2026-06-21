@@ -261,6 +261,14 @@
     .modal-copy { margin: 0 0 .85rem; color: #667085; font-size: .88rem; line-height: 1.45; }
     .modal-actions { display: flex; justify-content: flex-end; gap: .55rem; margin-top: 1rem; }
     .mode-global { color: #006f66; background: #e4f7f3; }
+    .calculation-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+    .calculation-item { border: 1px solid #e4e7ec; border-radius: 8px; padding: .7rem; background: #f9fafb; }
+    .calculation-item strong { display: block; margin-top: .2rem; color: #06346d; font-size: 1rem; }
+    .calculation-item.total { grid-column: 1 / -1; border-color: #8acdc4; background: #e4f7f3; }
+    .calculation-item.total strong { color: #006f66; font-size: 1.2rem; }
+    .contribution-check { margin-top: .7rem; border-radius: 8px; padding: .7rem; font-size: .86rem; font-weight: 700; }
+    .contribution-check.ok { color: #027a48; background: #ecfdf3; border: 1px solid #a6f4c5; }
+    .contribution-check.warning { color: #b54708; background: #fffaeb; border: 1px solid #fedf89; }
 
     @media (max-width: 960px) {
         .meta-grid,
@@ -287,7 +295,7 @@
                 <h2 id="details-title">Declaration</h2>
                 <div class="toolbar-right actions">
                     <a href="{{ route('declarations.interface') }}" class="btn btn-outline">Retour a la liste</a>
-                    <button id="record-global-contribution-btn" class="btn btn-primary" type="button">Enregistrer le montant declare</button>
+                    <button id="record-global-contribution-btn" class="btn btn-primary" type="button">Calculer le montant du</button>
                     <button id="use-detailed-entry-btn" class="btn btn-outline is-hidden" type="button">Revenir au detail par travailleur</button>
                     <button id="recalculate-declaration-btn" class="btn btn-outline" type="button">Recalculer cotisations</button>
                     <button id="submit-declaration-btn" class="btn btn-primary" type="button">Soumettre</button>
@@ -322,8 +330,16 @@
                     <span class="meta-value" id="meta-total-salary">0</span>
                 </div>
                 <div class="meta-card">
-                    <span class="meta-label">Total contribution</span>
+                    <span class="meta-label">Montant cotise</span>
                     <span class="meta-value" id="meta-total-contribution">0</span>
+                </div>
+                <div class="meta-card">
+                    <span class="meta-label">Montant du</span>
+                    <span class="meta-value" id="meta-amount-due">-</span>
+                </div>
+                <div class="meta-card">
+                    <span class="meta-label">Coherence cotisation</span>
+                    <span class="meta-value" id="meta-contribution-check">-</span>
                 </div>
                 <div class="meta-card">
                     <span class="meta-label">Lignes</span>
@@ -403,18 +419,27 @@
         <dialog class="global-dialog" id="global-contribution-dialog">
             <div class="modal-shell">
                 <div class="modal-head">
-                    <h2>Montant global declare</h2>
+                    <h2>Calcul du montant du</h2>
                     <button id="close-global-dialog" class="btn btn-outline" type="button">Fermer</button>
                 </div>
-                <p class="modal-copy">Ce montant devient le total declare a la CNSS pour cette periode. Les lignes par travailleur restent conservees mais sont ignorees tant que le mode global est actif.</p>
-                <div class="field">
-                    <label for="global_contribution_amount">Montant declare</label>
-                    <input class="control" id="global_contribution_amount" type="number" min="0" step="0.01" required>
+                <p class="modal-copy">Le montant est calcule automatiquement a partir des salaires des travailleurs actifs de l'employeur et du taux applicable a la periode.</p>
+                <div class="calculation-grid" id="global-calculation-preview">
+                    <div class="calculation-item"><span class="meta-label">Travailleurs actifs</span><strong id="preview-worker-count">-</strong></div>
+                    <div class="calculation-item"><span class="meta-label">Enveloppe salariale</span><strong id="preview-salary-envelope">-</strong></div>
+                    <div class="calculation-item"><span class="meta-label">Part employeur</span><strong id="preview-employer-rate">-</strong></div>
+                    <div class="calculation-item"><span class="meta-label">Part travailleur</span><strong id="preview-worker-rate">-</strong></div>
+                    <div class="calculation-item"><span class="meta-label">Taux total</span><strong id="preview-total-rate">-</strong></div>
+                    <div class="calculation-item total"><span class="meta-label">Montant du a la CNSS</span><strong id="preview-amount-due">-</strong></div>
                 </div>
+                <div class="field" style="margin-top:.8rem;">
+                    <label for="global_contributed_amount">Montant cotise par l'employeur</label>
+                    <input class="control" id="global_contributed_amount" type="number" min="0" step="0.01" required>
+                </div>
+                <div id="global-contribution-check" class="contribution-check warning is-hidden"></div>
                 <p id="global-contribution-status" class="status-text"></p>
                 <div class="modal-actions">
                     <button id="cancel-global-contribution" class="btn btn-outline" type="button">Annuler</button>
-                    <button id="save-global-contribution" class="btn btn-primary" type="button">Enregistrer le montant</button>
+                    <button id="save-global-contribution" class="btn btn-primary" type="button" disabled>Enregistrer le calcul</button>
                 </div>
             </div>
         </dialog>
@@ -442,6 +467,8 @@
         metaDueDate: document.getElementById('meta-due-date'),
         metaTotalSalary: document.getElementById('meta-total-salary'),
         metaTotalContribution: document.getElementById('meta-total-contribution'),
+        metaAmountDue: document.getElementById('meta-amount-due'),
+        metaContributionCheck: document.getElementById('meta-contribution-check'),
         metaLinesCount: document.getElementById('meta-lines-count'),
         metaValidationMessage: document.getElementById('meta-validation-message'),
         lineWorkerSelect: document.getElementById('line_worker_id'),
@@ -463,8 +490,15 @@
         recordGlobalContributionBtn: document.getElementById('record-global-contribution-btn'),
         useDetailedEntryBtn: document.getElementById('use-detailed-entry-btn'),
         globalContributionDialog: document.getElementById('global-contribution-dialog'),
-        globalContributionAmount: document.getElementById('global_contribution_amount'),
         globalContributionStatus: document.getElementById('global-contribution-status'),
+        previewWorkerCount: document.getElementById('preview-worker-count'),
+        previewSalaryEnvelope: document.getElementById('preview-salary-envelope'),
+        previewEmployerRate: document.getElementById('preview-employer-rate'),
+        previewWorkerRate: document.getElementById('preview-worker-rate'),
+        previewTotalRate: document.getElementById('preview-total-rate'),
+        previewAmountDue: document.getElementById('preview-amount-due'),
+        globalContributedAmount: document.getElementById('global_contributed_amount'),
+        globalContributionCheck: document.getElementById('global-contribution-check'),
         closeGlobalDialog: document.getElementById('close-global-dialog'),
         cancelGlobalContribution: document.getElementById('cancel-global-contribution'),
         saveGlobalContribution: document.getElementById('save-global-contribution'),
@@ -517,6 +551,15 @@
         els.metaDueDate.textContent = declaration.due_date || '-';
         els.metaTotalSalary.textContent = declaration.total_declared_salary ?? '0';
         els.metaTotalContribution.textContent = declaration.total_declared_contribution ?? '0';
+        els.metaAmountDue.textContent = isGlobal ? (declaration.global_amount_due ?? '-') : '-';
+        if (isGlobal && declaration.global_contribution_status) {
+            const difference = Number(declaration.global_contribution_difference || 0);
+            els.metaContributionCheck.textContent = declaration.global_contribution_status === 'CONFORME'
+                ? 'CONFORME'
+                : `${declaration.global_contribution_status} (${formatAmount(Math.abs(difference))} CDF)`;
+        } else {
+            els.metaContributionCheck.textContent = '-';
+        }
         els.metaLinesCount.textContent = String((declaration.lines || []).length);
         els.metaValidationMessage.textContent = declaration.validation_message || '-';
     }
@@ -534,7 +577,8 @@
         els.globalModeNotice.classList.toggle('is-hidden', !isGlobal);
 
         if (isGlobal) {
-            els.linesTableBody.innerHTML = `<tr><td colspan="10" class="empty">Montant global declare: ${escapeHtml(state.declaration.global_contribution_amount ?? '0')}</td></tr>`;
+            const status = state.declaration.global_contribution_status || 'NON VERIFIE';
+            els.linesTableBody.innerHTML = `<tr><td colspan="10" class="empty">Montant du: ${escapeHtml(state.declaration.global_amount_due ?? '0')} CDF | Montant cotise: ${escapeHtml(state.declaration.global_contribution_amount ?? '0')} CDF | ${escapeHtml(status)}</td></tr>`;
             return;
         }
 
@@ -588,7 +632,7 @@
 
         els.submitDeclarationBtn.disabled = !isDraft;
         els.recordGlobalContributionBtn.disabled = !isDraft;
-        els.recordGlobalContributionBtn.textContent = isGlobal ? 'Modifier le montant declare' : 'Enregistrer le montant declare';
+        els.recordGlobalContributionBtn.textContent = isGlobal ? 'Recalculer le montant du' : 'Calculer le montant du';
         els.useDetailedEntryBtn.classList.toggle('is-hidden', !isDraft || !isGlobal);
         els.recalculateDeclarationBtn.disabled = !isDraft || isGlobal;
         els.saveLineBtn.disabled = !isDraft || isGlobal;
@@ -783,14 +827,85 @@
         }
     }
 
-    function openGlobalContributionDialog() {
+    function formatAmount(value) {
+        return new Intl.NumberFormat('fr-FR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(Number(value || 0));
+    }
+
+    function clearGlobalPreview() {
+        els.previewWorkerCount.textContent = '-';
+        els.previewSalaryEnvelope.textContent = '-';
+        els.previewEmployerRate.textContent = '-';
+        els.previewWorkerRate.textContent = '-';
+        els.previewTotalRate.textContent = '-';
+        els.previewAmountDue.textContent = '-';
+        els.globalContributionCheck.textContent = '';
+        els.globalContributionCheck.classList.add('is-hidden');
+    }
+
+    function updateContributionCheck() {
+        const amountDue = Number(els.globalContributedAmount.dataset.amountDue);
+        const contributedAmount = Number(els.globalContributedAmount.value);
+
+        if (!Number.isFinite(amountDue) || els.globalContributedAmount.value === '' || !Number.isFinite(contributedAmount)) {
+            els.globalContributionCheck.classList.add('is-hidden');
+            els.saveGlobalContribution.disabled = true;
+            return;
+        }
+
+        const difference = Math.round((contributedAmount - amountDue) * 100) / 100;
+        els.globalContributionCheck.classList.remove('is-hidden', 'ok', 'warning');
+        els.globalContributionCheck.classList.add(Math.abs(difference) < 0.01 ? 'ok' : 'warning');
+
+        if (Math.abs(difference) < 0.01) {
+            els.globalContributionCheck.textContent = 'Cotisation conforme au montant du.';
+        } else if (difference < 0) {
+            els.globalContributionCheck.textContent = `Cotisation insuffisante. Ecart: ${formatAmount(Math.abs(difference))} CDF.`;
+        } else {
+            els.globalContributionCheck.textContent = `Cotisation superieure au montant du. Ecart: ${formatAmount(difference)} CDF.`;
+        }
+
+        els.saveGlobalContribution.disabled = contributedAmount < 0;
+    }
+
+    async function openGlobalContributionDialog() {
         if (!state.declaration) {
             return;
         }
 
-        els.globalContributionAmount.value = state.declaration.global_contribution_amount ?? state.declaration.total_declared_contribution ?? '';
-        setStatus(els.globalContributionStatus, '');
+        clearGlobalPreview();
+        els.globalContributedAmount.value = state.declaration.global_contribution_amount ?? '';
+        delete els.globalContributedAmount.dataset.amountDue;
+        els.saveGlobalContribution.disabled = true;
+        setStatus(els.globalContributionStatus, 'Calcul en cours...');
         els.globalContributionDialog.showModal();
+
+        try {
+            const response = await fetch(`/api/declarations/${state.declaration.id}/global-contribution-preview`, {
+                headers: { 'Accept': 'application/json' },
+            });
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                const message = Object.values(data.errors || {}).flat().join(' ');
+                throw new Error(message || 'Impossible de calculer le montant du.');
+            }
+
+            const calculation = data.calculation;
+            els.previewWorkerCount.textContent = String(calculation.worker_count);
+            els.previewSalaryEnvelope.textContent = `${formatAmount(calculation.salary_envelope)} CDF`;
+            els.previewEmployerRate.textContent = `${formatAmount(calculation.employer_rate)} %`;
+            els.previewWorkerRate.textContent = `${formatAmount(calculation.worker_rate)} %`;
+            els.previewTotalRate.textContent = `${formatAmount(calculation.total_rate)} %`;
+            els.previewAmountDue.textContent = `${formatAmount(calculation.amount_due)} CDF`;
+            els.globalContributedAmount.dataset.amountDue = String(calculation.amount_due);
+            updateContributionCheck();
+            setStatus(els.globalContributionStatus, 'Saisissez le montant effectivement cotise. Un ecart sera signale sans bloquer l enregistrement.', 'ok');
+        } catch (error) {
+            setStatus(els.globalContributionStatus, error.message || 'Erreur de calcul.', 'error');
+        }
     }
 
     async function saveGlobalContribution() {
@@ -809,7 +924,7 @@
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': csrfToken,
                 },
-                body: JSON.stringify({ amount: els.globalContributionAmount.value }),
+                body: JSON.stringify({ contributed_amount: els.globalContributedAmount.value }),
             });
 
             if (!response.ok) {
@@ -824,7 +939,12 @@
             renderLines();
             updateWorkflowButtons();
             showLinesTable();
-            setDeclarationStatus('Montant global enregistre.', 'ok');
+            const status = state.declaration.global_contribution_status;
+            const difference = Number(state.declaration.global_contribution_difference || 0);
+            const message = status === 'CONFORME'
+                ? 'Cotisation enregistree: montant conforme.'
+                : `Cotisation enregistree avec un ecart de ${formatAmount(Math.abs(difference))} CDF (${status}).`;
+            setDeclarationStatus(message, status === 'CONFORME' ? 'ok' : 'error');
         } catch (error) {
             setStatus(els.globalContributionStatus, error.message || 'Erreur d enregistrement.', 'error');
         } finally {
@@ -880,6 +1000,7 @@
     els.closeGlobalDialog.addEventListener('click', () => els.globalContributionDialog.close());
     els.cancelGlobalContribution.addEventListener('click', () => els.globalContributionDialog.close());
     els.saveGlobalContribution.addEventListener('click', saveGlobalContribution);
+    els.globalContributedAmount.addEventListener('input', updateContributionCheck);
     els.useDetailedEntryBtn.addEventListener('click', useDetailedEntry);
 
     els.linesTableBody.addEventListener('click', async (event) => {

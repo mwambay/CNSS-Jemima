@@ -19,6 +19,11 @@ class Declaration extends Model
         'total_declared_salary',
         'total_declared_contribution',
         'global_contribution_amount',
+        'global_amount_due',
+        'global_salary_envelope',
+        'global_employer_rate',
+        'global_worker_rate',
+        'global_worker_count',
         'validation_message',
     ];
 
@@ -33,6 +38,11 @@ class Declaration extends Model
             'total_declared_salary' => 'decimal:2',
             'total_declared_contribution' => 'decimal:2',
             'global_contribution_amount' => 'decimal:2',
+            'global_amount_due' => 'decimal:2',
+            'global_salary_envelope' => 'decimal:2',
+            'global_employer_rate' => 'decimal:4',
+            'global_worker_rate' => 'decimal:4',
+            'global_worker_count' => 'integer',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

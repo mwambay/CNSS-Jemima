@@ -284,6 +284,16 @@ class DeclarationCrudTest extends TestCase
     {
         $admin = $this->createAdminUser();
         $employer = $this->createEmployer('EMP-GLOBAL-001', 'Global Declaration Corp');
+        $this->createWorkerForEmployer($employer, 'MAT-GLOBAL-001-A', 300000);
+        $this->createWorkerForEmployer($employer, 'MAT-GLOBAL-001-B', 450000);
+        ContributionRate::query()->create([
+            'regime_code' => 'GENERAL',
+            'effective_from' => '2026-01-01',
+            'effective_to' => null,
+            'employer_rate' => 12,
+            'worker_rate' => 6,
+            'is_active' => true,
+        ]);
         $declaration = Declaration::query()->create([
             'employer_id' => $employer->id,
             'period_year' => 2026,
@@ -293,13 +303,28 @@ class DeclarationCrudTest extends TestCase
         ]);
 
         $this->actingAs($admin)
+            ->getJson('/api/declarations/'.$declaration->id.'/global-contribution-preview')
+            ->assertOk()
+            ->assertJsonPath('calculation.worker_count', 2)
+            ->assertJsonPath('calculation.salary_envelope', 750000)
+            ->assertJsonPath('calculation.total_rate', 18)
+            ->assertJsonPath('calculation.amount_due', 135000);
+
+        $this->actingAs($admin)
             ->postJson('/api/declarations/'.$declaration->id.'/global-contribution', [
-                'amount' => 485000.75,
+                'contributed_amount' => 120000,
             ])
             ->assertOk()
             ->assertJsonPath('contribution_entry_mode', 'GLOBAL')
-            ->assertJsonPath('global_contribution_amount', '485000.75')
-            ->assertJsonPath('total_declared_contribution', '485000.75')
+            ->assertJsonPath('global_salary_envelope', '750000.00')
+            ->assertJsonPath('global_employer_rate', '12.0000')
+            ->assertJsonPath('global_worker_rate', '6.0000')
+            ->assertJsonPath('global_worker_count', 2)
+            ->assertJsonPath('global_amount_due', '135000.00')
+            ->assertJsonPath('global_contribution_amount', '120000.00')
+            ->assertJsonPath('global_contribution_difference', -15000)
+            ->assertJsonPath('global_contribution_status', 'INSUFFISANT')
+            ->assertJsonPath('total_declared_contribution', '120000.00')
             ->assertJsonCount(0, 'lines');
 
         $this->actingAs($admin)
@@ -311,8 +336,9 @@ class DeclarationCrudTest extends TestCase
     public function test_global_contribution_mode_blocks_worker_lines_and_can_return_to_detailed_mode(): void
     {
         $admin = $this->createAdminUser();
+        $this->createDefaultRate();
         $employer = $this->createEmployer('EMP-GLOBAL-002', 'Global Mode Corp');
-        $worker = $this->createWorkerForEmployer($employer, 'MAT-GLOBAL-002');
+        $worker = $this->createWorkerForEmployer($employer, 'MAT-GLOBAL-002', 1000);
         $declaration = Declaration::query()->create([
             'employer_id' => $employer->id,
             'period_year' => 2026,
@@ -322,7 +348,9 @@ class DeclarationCrudTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->postJson('/api/declarations/'.$declaration->id.'/global-contribution', ['amount' => 1000])
+            ->postJson('/api/declarations/'.$declaration->id.'/global-contribution', [
+                'contributed_amount' => 1000,
+            ])
             ->assertOk();
 
         $this->actingAs($admin)
@@ -338,7 +366,35 @@ class DeclarationCrudTest extends TestCase
             ->assertOk()
             ->assertJsonPath('contribution_entry_mode', 'DETAILED')
             ->assertJsonPath('global_contribution_amount', null)
+            ->assertJsonPath('global_amount_due', null)
             ->assertJsonPath('total_declared_contribution', '0.00');
+    }
+
+    public function test_global_contribution_is_blocked_when_an_active_worker_has_no_salary(): void
+    {
+        $admin = $this->createAdminUser();
+        $this->createDefaultRate();
+        $employer = $this->createEmployer('EMP-GLOBAL-003', 'Incomplete Salaries Corp');
+        $this->createWorkerForEmployer($employer, 'MAT-GLOBAL-003');
+        $declaration = Declaration::query()->create([
+            'employer_id' => $employer->id,
+            'period_year' => 2026,
+            'period_month' => 10,
+            'due_date' => '2026-10-31',
+            'status' => 'DRAFT',
+        ]);
+
+        $this->actingAs($admin)
+            ->getJson('/api/declarations/'.$declaration->id.'/global-contribution-preview')
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('base_salary');
+
+        $this->actingAs($admin)
+            ->postJson('/api/declarations/'.$declaration->id.'/global-contribution', [
+                'contributed_amount' => 1000,
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('base_salary');
     }
 
     private function createAdminUser(): User
@@ -389,7 +445,7 @@ class DeclarationCrudTest extends TestCase
         ]);
     }
 
-    private function createWorkerForEmployer(Employer $employer, string $ssn): Worker
+    private function createWorkerForEmployer(Employer $employer, string $ssn, ?float $baseSalary = null): Worker
     {
         $worker = Worker::query()->create([
             'social_security_number' => $ssn,
@@ -402,6 +458,7 @@ class DeclarationCrudTest extends TestCase
             'employer_id' => $employer->id,
             'worker_id' => $worker->id,
             'start_date' => '2026-01-01',
+            'base_salary' => $baseSalary,
             'is_declared_active' => true,
         ]);
 

@@ -6,11 +6,72 @@ use App\Models\ContributionCalc;
 use App\Models\ContributionRate;
 use App\Models\Declaration;
 use App\Models\DeclarationLine;
+use App\Models\Employment;
 use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
 
 class ContributionCalculationService
 {
+    public function previewGlobalContribution(Declaration $declaration): array
+    {
+        $rate = $this->resolveApplicableRate($declaration);
+
+        if ($rate === null) {
+            throw ValidationException::withMessages([
+                'contribution_rate' => sprintf(
+                    'Aucune modalite de cotisation active ne couvre la periode %02d/%d.',
+                    $declaration->period_month,
+                    $declaration->period_year
+                ),
+            ]);
+        }
+
+        $employments = Employment::query()
+            ->with('worker')
+            ->where('employer_id', $declaration->employer_id)
+            ->where('is_declared_active', true)
+            ->orderByDesc('start_date')
+            ->get()
+            ->unique('worker_id')
+            ->values();
+
+        if ($employments->isEmpty()) {
+            throw ValidationException::withMessages([
+                'workers' => 'Aucun travailleur actif n est rattache a cet employeur.',
+            ]);
+        }
+
+        $missingSalaryNames = $employments
+            ->filter(fn (Employment $employment): bool => $employment->base_salary === null)
+            ->map(function (Employment $employment): string {
+                $name = trim(($employment->worker?->first_name ?? '').' '.($employment->worker?->last_name ?? ''));
+
+                return $name !== '' ? $name : 'Matricule '.($employment->worker?->social_security_number ?? $employment->worker_id);
+            })
+            ->values();
+
+        if ($missingSalaryNames->isNotEmpty()) {
+            throw ValidationException::withMessages([
+                'base_salary' => 'Salaire de base manquant pour: '.$missingSalaryNames->implode(', ').'.',
+            ]);
+        }
+
+        $salaryEnvelope = round((float) $employments->sum('base_salary'), 2);
+        $employerRate = (float) $rate->employer_rate;
+        $workerRate = (float) $rate->worker_rate;
+        $totalRate = round($employerRate + $workerRate, 4);
+        $amountDue = round($salaryEnvelope * $totalRate / 100, 2);
+
+        return [
+            'worker_count' => $employments->count(),
+            'salary_envelope' => $salaryEnvelope,
+            'employer_rate' => $employerRate,
+            'worker_rate' => $workerRate,
+            'total_rate' => $totalRate,
+            'amount_due' => $amountDue,
+        ];
+    }
+
     public function recalculateDeclaration(Declaration $declaration): void
     {
         $declaration->loadMissing('declarationLines', 'employer');
