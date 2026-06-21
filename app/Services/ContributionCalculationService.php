@@ -7,6 +7,7 @@ use App\Models\ContributionRate;
 use App\Models\Declaration;
 use App\Models\DeclarationLine;
 use Carbon\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class ContributionCalculationService
 {
@@ -20,15 +21,13 @@ class ContributionCalculationService
         $totalSalary = (float) $lines->sum(static fn (DeclarationLine $line): float => (float) $line->gross_salary);
 
         if ($rate === null) {
-            $totalContribution = (float) $lines->sum(static fn (DeclarationLine $line): float => (float) $line->contributable_salary);
-            $this->clearLineCalculations($lines->pluck('id')->all());
-
-            $declaration->update([
-                'total_declared_salary' => round($totalSalary, 2),
-                'total_declared_contribution' => round($totalContribution, 2),
+            throw ValidationException::withMessages([
+                'contribution_rate' => sprintf(
+                    'Aucune modalite de cotisation active ne couvre la periode %02d/%d.',
+                    $declaration->period_month,
+                    $declaration->period_year
+                ),
             ]);
-
-            return;
         }
 
         $totalContribution = 0.0;
@@ -90,14 +89,4 @@ class ContributionCalculationService
         return round($bounded, 2);
     }
 
-    private function clearLineCalculations(array $lineIds): void
-    {
-        if ($lineIds === []) {
-            return;
-        }
-
-        ContributionCalc::query()
-            ->whereIn('declaration_line_id', $lineIds)
-            ->delete();
-    }
 }

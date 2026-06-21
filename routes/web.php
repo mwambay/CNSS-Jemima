@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AffiliationRequestController;
+use App\Http\Controllers\ContributionRateController;
 use App\Http\Controllers\DeclarationController;
 use App\Http\Controllers\DeclarationInterfaceController;
 use App\Http\Controllers\EmployerController;
@@ -35,6 +36,12 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/affiliations/{affiliationRequest}', [AffiliationRequestController::class, 'show'])->name('affiliations.show');
         Route::post('/affiliations/{affiliationRequest}/approve', [AffiliationRequestController::class, 'approve'])->name('affiliations.approve');
         Route::post('/affiliations/{affiliationRequest}/reject', [AffiliationRequestController::class, 'reject'])->name('affiliations.reject');
+    });
+
+    Route::middleware('role:ADMIN')->group(function (): void {
+        Route::get('/parametres/cotisations', [ContributionRateController::class, 'index'])->name('contribution-rates.index');
+        Route::post('/parametres/cotisations', [ContributionRateController::class, 'store'])->name('contribution-rates.store');
+        Route::put('/parametres/cotisations/{contributionRate}', [ContributionRateController::class, 'update'])->name('contribution-rates.update');
     });
 
     Route::prefix('api')

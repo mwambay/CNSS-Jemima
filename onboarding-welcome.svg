@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" role="img" aria-labelledby="title desc">
+  <title id="title">Bienvenue sur le site minier</title>
+  <desc id="desc">Deux professionnels devant une mine a ciel ouvert, un camion-benne, un convoyeur et une galerie.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eef4ff"/>
+      <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+    <linearGradient id="pit" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#657780"/>
+      <stop offset="1" stop-color="#263238"/>
+    </linearGradient>
+    <linearGradient id="vest" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6f96ee"/>
+      <stop offset="1" stop-color="#3f6fd7"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#263238" flood-opacity=".18"/>
+    </filter>
+  </defs>
+
+  <rect width="500" height="500" fill="url(#sky)"/>
+  <circle cx="417" cy="78" r="31" fill="#f8c94a" opacity=".28"/>
+  <circle cx="417" cy="78" r="19" fill="#f8c94a" opacity=".55"/>
+
+  <!-- Terraced open-pit mine -->
+  <path d="M0 242 71 189l58 28 75-76 63 55 58-74 91 74 84-30v198H0Z" fill="#d8e0e3"/>
+  <path d="M0 280 92 222l46 29 74-64 55 54 66-72 78 55 89-32v175H0Z" fill="#aebdc3"/>
+  <path d="M0 324 105 271l58 31 87-55 60 42 83-47 107 33v112H0Z" fill="url(#pit)"/>
+  <path d="M7 318c93 19 130 13 196-16 74-33 127-33 191-8 36 14 72 12 106 5" fill="none" stroke="#7f9199" stroke-width="8"/>
+  <path d="M0 350c90 20 169 17 238-8 73-27 152-23 262 12" fill="none" stroke="#455a64" stroke-width="10"/>
+
+  <!-- Mine gallery -->
+  <g transform="translate(303 232)">
+    <path d="M0 95V56C0 18 26 0 57 0s57 18 57 56v39Z" fill="#37474f" stroke="#263238" stroke-width="5"/>
+    <path d="M18 94V58c0-24 15-38 39-38s39 14 39 38v36Z" fill="#172126"/>
+    <path d="M22 26 5 8M92 26l17-18M57 20V0" stroke="#f8c94a" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="57" cy="48" r="7" fill="#fff3a6"/>
+    <path d="M52 95 57 55l5 40" fill="#89999f"/>
+    <path d="M31 95 51 57M83 95 63 57" stroke="#657780" stroke-width="3"/>
+  </g>
+
+  <!-- Conveyor -->
+  <g stroke="#263238" stroke-linejoin="round">
+    <path d="m48 266 176-68 7 18-176 68Z" fill="#6f96ee" stroke-width="4"/>
+    <path d="M70 276v70M198 226v120" fill="none" stroke-width="5"/>
+    <path d="m49 267 178-69" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="12 9" opacity=".75"/>
+    <circle cx="57" cy="276" r="8" fill="#f8c94a" stroke-width="3"/>
+    <circle cx="221" cy="210" r="8" fill="#f8c94a" stroke-width="3"/>
+  </g>
+
+  <!-- Haul truck -->
+  <g transform="translate(249 303)" filter="url(#shadow)">
+    <path d="M8 12h99l-13 45H24Z" fill="#f8c94a" stroke="#263238" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M97 28h44l19 18v25H88V49Z" fill="#f1b933" stroke="#263238" stroke-width="4"/>
+    <path d="m111 33 25 2 13 14h-38Z" fill="#b8d9ee" stroke="#263238" stroke-width="3"/>
+    <rect x="6" y="57" width="154" height="20" rx="4" fill="#455a64"/>
+    <circle cx="40" cy="78" r="19" fill="#263238" stroke="#fff" stroke-width="4"/>
+    <circle cx="128" cy="78" r="19" fill="#263238" stroke="#fff" stroke-width="4"/>
+    <circle cx="40" cy="78" r="7" fill="#89999f"/>
+    <circle cx="128" cy="78" r="7" fill="#89999f"/>
+  </g>
+
+  <!-- Safety sign -->
+  <g transform="translate(423 292)">
+    <path d="M25 15v98" stroke="#263238" stroke-width="6"/>
+    <path d="M25 0 50 44H0Z" fill="#f8c94a" stroke="#263238" stroke-width="4" stroke-linejoin="round"/>
+    <path d="m15 30 20-15M16 15l19 15" stroke="#263238" stroke-width="4" stroke-linecap="round"/>
+  </g>
+
+  <ellipse cx="250" cy="455" rx="210" ry="21" fill="#263238" opacity=".12"/>
+
+  <!-- Female mining engineer -->
+  <g transform="translate(78 224)" filter="url(#shadow)">
+    <path d="M57 106 39 211H67l14-79 13 79h29L108 106Z" fill="#263238"/>
+    <path d="m42 207-5 18h35l-5-18ZM94 207v18h38l-10-18Z" fill="#172126"/>
+    <path d="M45 50c6-18 18-27 35-27 23 0 35 15 37 39l-6 68H45Z" fill="url(#vest)"/>
+    <path d="m58 51 15 78M104 52l-14 77" stroke="#f8c94a" stroke-width="8"/>
+    <path d="M46 86h68" stroke="#f8c94a" stroke-width="8"/>
+    <path d="m48 58-27 59M113 59l24 55" stroke="#8b4f42" stroke-width="13" stroke-linecap="round"/>
+    <circle cx="80" cy="21" r="20" fill="#9b5b4c"/>
+    <path d="M58 21c2-20 43-27 47 2-10-6-26-9-47-2Z" fill="#263238"/>
+    <path d="M52 17c2-20 56-22 58 2H52Z" fill="#f8c94a" stroke="#263238" stroke-width="3"/>
+    <path d="M49 19h65" stroke="#263238" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="74" cy="23" r="2" fill="#263238"/>
+    <circle cx="88" cy="23" r="2" fill="#263238"/>
+    <path d="M75 32c5 4 10 4 15 0" fill="none" stroke="#6f332c" stroke-width="2" stroke-linecap="round"/>
+    <rect x="65" y="69" width="31" height="22" rx="3" fill="#fff" opacity=".92"/>
+    <path d="M72 76h17M72 82h12" stroke="#517fe6" stroke-width="2"/>
+  </g>
+
+  <!-- Male mining engineer with tablet -->
+  <g transform="translate(179 235)" filter="url(#shadow)">
+    <path d="m40 102-8 103h29l9-72 10 72h29l-14-103Z" fill="#455a64"/>
+    <path d="m31 201-6 21h39l-3-21ZM80 201v21h40l-12-21Z" fill="#172126"/>
+    <path d="M37 47c4-18 17-27 35-27 22 0 36 13 39 38l-4 68H39Z" fill="#fff"/>
+    <path d="M40 58h68v53H40Z" fill="url(#vest)"/>
+    <path d="M42 77h65" stroke="#f8c94a" stroke-width="8"/>
+    <path d="m51 56 12 55M97 56l-12 55" stroke="#f8c94a" stroke-width="7"/>
+    <circle cx="74" cy="19" r="19" fill="#754235"/>
+    <path d="M55 17c5-23 39-24 40 2-12-6-27-7-40-2Z" fill="#263238"/>
+    <path d="M48 15c2-20 54-21 56 2H48Z" fill="#f8c94a" stroke="#263238" stroke-width="3"/>
+    <path d="M46 17h61" stroke="#263238" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="68" cy="21" r="2" fill="#263238"/>
+    <circle cx="81" cy="21" r="2" fill="#263238"/>
+    <path d="M68 30c4 3 9 3 13 0" fill="none" stroke="#4f261f" stroke-width="2"/>
+    <path d="M42 60 20 112M107 59l21 50" stroke="#754235" stroke-width="13" stroke-linecap="round"/>
+    <g transform="rotate(-6 71 100)">
+      <rect x="45" y="79" width="54" height="42" rx="5" fill="#263238"/>
+      <rect x="50" y="84" width="44" height="30" rx="2" fill="#d9e7ff"/>
+      <path d="m56 105 9-8 8 5 14-12" fill="none" stroke="#517fe6" stroke-width="3"/>
+    </g>
+  </g>
+
+  <!-- Foreground rocks -->
+  <g fill="#455a64">
+    <path d="m17 449 20-25 25 5 17 27Z"/>
+    <path d="m390 455 21-29 31 4 27 27Z"/>
+    <path d="m353 458 14-18 22 4 12 14Z" fill="#657780"/>
+  </g>
+</svg>

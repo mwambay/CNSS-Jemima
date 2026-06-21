@@ -121,8 +121,9 @@
     }
 
     .btn-danger {
-        background: #f04438;
-        color: #fff;
+        background: #e4f7f3;
+        color: #006f66;
+        border: 1px solid #8acdc4;
     }
 
     .actions {

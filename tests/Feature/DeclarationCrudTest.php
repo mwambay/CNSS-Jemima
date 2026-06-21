@@ -63,6 +63,7 @@ class DeclarationCrudTest extends TestCase
     public function test_can_upsert_line_on_draft_declaration_and_recalculate_totals(): void
     {
         $admin = $this->createAdminUser();
+        $this->createDefaultRate();
         $employer = $this->createEmployer('EMP-D-002', 'Employer Two');
         $worker = $this->createWorkerForEmployer($employer, 'SS-D-001');
 
@@ -85,7 +86,7 @@ class DeclarationCrudTest extends TestCase
             ->assertOk()
             ->assertJsonPath('lines.0.worker_id', $worker->id)
             ->assertJsonPath('total_declared_salary', '1000.00')
-            ->assertJsonPath('total_declared_contribution', '900.00');
+            ->assertJsonPath('total_declared_contribution', '144.00');
     }
 
     public function test_cannot_add_line_for_worker_not_linked_to_employer(): void
@@ -116,6 +117,7 @@ class DeclarationCrudTest extends TestCase
     public function test_can_submit_and_validate_declaration(): void
     {
         $admin = $this->createAdminUser();
+        $this->createDefaultRate();
         $employer = $this->createEmployer('EMP-D-005', 'Employer Five');
         $worker = $this->createWorkerForEmployer($employer, 'SS-D-003');
 
@@ -202,6 +204,31 @@ class DeclarationCrudTest extends TestCase
         ]);
     }
 
+    public function test_cannot_calculate_without_an_applicable_rate(): void
+    {
+        $admin = $this->createAdminUser();
+        $employer = $this->createEmployer('EMP-D-008', 'Employer Eight');
+        $worker = $this->createWorkerForEmployer($employer, 'SS-D-008');
+        $declaration = Declaration::query()->create([
+            'employer_id' => $employer->id,
+            'period_year' => 2026,
+            'period_month' => 8,
+            'due_date' => '2026-08-31',
+            'status' => 'DRAFT',
+        ]);
+
+        $this->actingAs($admin)
+            ->postJson('/api/declarations/'.$declaration->id.'/lines', [
+                'worker_id' => $worker->id,
+                'gross_salary' => 1000,
+                'contributable_salary' => 900,
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('contribution_rate');
+
+        $this->assertDatabaseCount('declaration_lines', 0);
+    }
+
     public function test_can_recalculate_declaration_with_newer_effective_rate(): void
     {
         $admin = $this->createAdminUser();
@@ -264,6 +291,20 @@ class DeclarationCrudTest extends TestCase
         $user->roles()->attach($adminRole->id);
 
         return $user;
+    }
+
+    private function createDefaultRate(): ContributionRate
+    {
+        return ContributionRate::query()->create([
+            'regime_code' => 'GENERAL',
+            'effective_from' => '2026-01-01',
+            'effective_to' => null,
+            'employer_rate' => 12,
+            'worker_rate' => 4,
+            'ceiling_amount' => null,
+            'floor_amount' => null,
+            'is_active' => true,
+        ]);
     }
 
     private function createUser(string $username): User

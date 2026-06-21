@@ -175,8 +175,14 @@
         }
 
         .btn-danger {
-            color: #fff;
-            background: var(--error-500);
+            color: #006f66;
+            background: var(--brand-accent-soft);
+            border: 1px solid #8acdc4;
+        }
+
+        .btn-danger:hover {
+            background: #d4f1ec;
+            border-color: var(--brand-accent);
         }
 
         .content {
@@ -223,6 +229,9 @@
             <a class="nav-link {{ request()->routeIs('employers.*') ? 'active' : '' }}" href="{{ route('employers.interface') }}">Employeurs</a>
             <a class="nav-link {{ request()->routeIs('workers.interface') ? 'active' : '' }}" href="{{ route('workers.interface') }}">Travailleurs</a>
             <a class="nav-link {{ request()->routeIs('declarations.*') ? 'active' : '' }}" href="{{ route('declarations.interface') }}">Declarations</a>
+            @if(auth()->user()->roles()->where('code', 'ADMIN')->exists())
+                <a class="nav-link {{ request()->routeIs('contribution-rates.*') ? 'active' : '' }}" href="{{ route('contribution-rates.index') }}">Parametres cotisations</a>
+            @endif
         </nav>
     </aside>
 

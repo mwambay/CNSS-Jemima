@@ -17,7 +17,7 @@
     .btn, button { border: 0; border-radius: 10px; padding: .56rem .86rem; font: inherit; font-size: .84rem; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
     .btn-outline { background: #fff; color: #344054; border: 1px solid #d0d5dd; }
     .btn-primary { background: #06346d; color: #fff; }
-    .btn-danger { background: #f04438; color: #fff; }
+    .btn-danger { background: #e4f7f3; color: #006f66; border: 1px solid #8acdc4; }
     .forms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
     .field { display: grid; gap: .35rem; margin-bottom: .7rem; }
     label { color: #344054; font-size: .82rem; font-weight: 700; }

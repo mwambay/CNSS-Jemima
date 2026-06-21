@@ -119,8 +119,9 @@
     }
 
     .btn-danger {
-        color: #fff;
-        background: #f04438;
+        color: #006f66;
+        background: #e4f7f3;
+        border: 1px solid #8acdc4;
     }
 
     .toolbar {
