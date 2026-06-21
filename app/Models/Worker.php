@@ -9,7 +9,6 @@ class Worker extends Model
 {
     protected $fillable = [
         'social_security_number',
-        'national_id',
         'first_name',
         'last_name',
         'birth_date',

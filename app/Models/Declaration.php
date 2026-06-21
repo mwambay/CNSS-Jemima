@@ -15,8 +15,10 @@ class Declaration extends Model
         'submitted_at',
         'due_date',
         'status',
+        'contribution_entry_mode',
         'total_declared_salary',
         'total_declared_contribution',
+        'global_contribution_amount',
         'validation_message',
     ];
 
@@ -30,6 +32,7 @@ class Declaration extends Model
             'due_date' => 'date',
             'total_declared_salary' => 'decimal:2',
             'total_declared_contribution' => 'decimal:2',
+            'global_contribution_amount' => 'decimal:2',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

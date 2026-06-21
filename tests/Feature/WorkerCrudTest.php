@@ -56,6 +56,7 @@ class WorkerCrudTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1)
             ->assertJsonPath('0.social_security_number', 'SS-001')
+            ->assertJsonMissingPath('0.national_id')
             ->assertJsonPath('0.employer_name', 'ACME');
     }
 
@@ -66,7 +67,6 @@ class WorkerCrudTest extends TestCase
 
         $payload = [
             'social_security_number' => 'SS-002',
-            'national_id' => 'CIN-002',
             'first_name' => 'Ali',
             'last_name' => 'Moussa',
             'birth_date' => '1990-03-20',
@@ -83,6 +83,7 @@ class WorkerCrudTest extends TestCase
         $response
             ->assertCreated()
             ->assertJsonPath('social_security_number', 'SS-002')
+            ->assertJsonMissingPath('national_id')
             ->assertJsonPath('employer_id', $employer->id);
 
         $this->assertDatabaseHas('workers', [
@@ -116,6 +117,21 @@ class WorkerCrudTest extends TestCase
                 'employer_id',
                 'employment_start_date',
             ]);
+    }
+
+    public function test_contract_type_must_be_cdi_or_cdd(): void
+    {
+        $admin = $this->createAdminUser();
+        $employer = $this->createEmployer('EMP-INVALID-CONTRACT', 'Invalid Contract Corp');
+
+        $this->actingAs($admin)->postJson('/api/workers', [
+            'social_security_number' => 'MAT-INVALID-CONTRACT',
+            'first_name' => 'Test',
+            'last_name' => 'Contract',
+            'employer_id' => $employer->id,
+            'employment_start_date' => '2026-06-01',
+            'contract_type' => 'STAGE',
+        ])->assertStatus(422)->assertJsonValidationErrors('contract_type');
     }
 
     public function test_can_update_a_worker_and_active_employment(): void

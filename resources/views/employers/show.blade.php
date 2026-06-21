@@ -382,9 +382,8 @@
                 <table>
                     <thead>
                     <tr>
-                        <th>Numero SS</th>
+                        <th>Matricule</th>
                         <th>Nom complet</th>
-                        <th>CIN</th>
                         <th>Statut</th>
                         <th>Contrat</th>
                         <th>Date embauche</th>
@@ -396,7 +395,6 @@
                         <tr>
                             <td>{{ $worker['social_security_number'] ?? '-' }}</td>
                             <td>{{ $worker['full_name'] ?? '-' }}</td>
-                            <td>{{ $worker['national_id'] ?? '-' }}</td>
                             <td>
                                 @php $status = $worker['status'] ?? 'ACTIVE'; @endphp
                                 <span class="badge {{ $status === 'SUSPENDED' ? 'badge-suspended' : ($status === 'INACTIVE' ? 'badge-inactive' : 'badge-active') }}">{{ $status }}</span>
@@ -407,7 +405,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="empty">Aucun travailleur rattache a cet employeur.</td>
+                            <td colspan="6" class="empty">Aucun travailleur rattache a cet employeur.</td>
                         </tr>
                     @endforelse
                     </tbody>
@@ -421,12 +419,8 @@
                         <input type="hidden" name="employer_id" value="{{ $employer->id }}">
                         <div class="form-grid">
                             <div class="field">
-                                <label for="social_security_number">Numero SS</label>
+                                <label for="social_security_number">Numero matricule</label>
                                 <input class="control" id="social_security_number" name="social_security_number" required maxlength="50">
-                            </div>
-                            <div class="field">
-                                <label for="national_id">Numero CIN</label>
-                                <input class="control" id="national_id" name="national_id" maxlength="50">
                             </div>
                             <div class="field">
                                 <label for="first_name">Prenom</label>
@@ -450,7 +444,11 @@
                             </div>
                             <div class="field">
                                 <label for="contract_type">Type contrat</label>
-                                <input class="control" id="contract_type" name="contract_type" maxlength="30">
+                                <select class="control" id="contract_type" name="contract_type">
+                                    <option value="">Selectionner</option>
+                                    <option value="CDI">CDI</option>
+                                    <option value="CDD">CDD</option>
+                                </select>
                             </div>
                             <div class="field">
                                 <label for="base_salary">Salaire de base</label>
@@ -564,7 +562,6 @@
         const payload = {
             employer_id: Number(formData.get('employer_id')),
             social_security_number: String(formData.get('social_security_number') || '').trim(),
-            national_id: String(formData.get('national_id') || '').trim() || null,
             first_name: String(formData.get('first_name') || '').trim(),
             last_name: String(formData.get('last_name') || '').trim(),
             employment_start_date: String(formData.get('employment_start_date') || '').trim(),

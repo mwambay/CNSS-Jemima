@@ -25,7 +25,6 @@ class UpdateWorkerRequest extends FormRequest
                 'max:50',
                 Rule::unique('workers', 'social_security_number')->ignore($worker->id),
             ],
-            'national_id' => ['nullable', 'string', 'max:50'],
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'birth_date' => ['nullable', 'date'],
@@ -33,7 +32,7 @@ class UpdateWorkerRequest extends FormRequest
             'status' => ['nullable', Rule::in(['ACTIVE', 'SUSPENDED', 'INACTIVE'])],
             'employer_id' => ['required', 'integer', 'exists:employers,id'],
             'employment_start_date' => ['required', 'date'],
-            'contract_type' => ['nullable', 'string', 'max:30'],
+            'contract_type' => ['nullable', Rule::in(['CDI', 'CDD'])],
             'base_salary' => ['nullable', 'numeric', 'min:0'],
         ];
     }

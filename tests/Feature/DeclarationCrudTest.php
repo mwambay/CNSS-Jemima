@@ -280,6 +280,67 @@ class DeclarationCrudTest extends TestCase
             ->assertJsonPath('lines.0.applied_rate.id', $newRate->id);
     }
 
+    public function test_can_record_and_submit_global_contribution_without_worker_lines(): void
+    {
+        $admin = $this->createAdminUser();
+        $employer = $this->createEmployer('EMP-GLOBAL-001', 'Global Declaration Corp');
+        $declaration = Declaration::query()->create([
+            'employer_id' => $employer->id,
+            'period_year' => 2026,
+            'period_month' => 9,
+            'due_date' => '2026-09-30',
+            'status' => 'DRAFT',
+        ]);
+
+        $this->actingAs($admin)
+            ->postJson('/api/declarations/'.$declaration->id.'/global-contribution', [
+                'amount' => 485000.75,
+            ])
+            ->assertOk()
+            ->assertJsonPath('contribution_entry_mode', 'GLOBAL')
+            ->assertJsonPath('global_contribution_amount', '485000.75')
+            ->assertJsonPath('total_declared_contribution', '485000.75')
+            ->assertJsonCount(0, 'lines');
+
+        $this->actingAs($admin)
+            ->postJson('/api/declarations/'.$declaration->id.'/submit')
+            ->assertOk()
+            ->assertJsonPath('status', 'SUBMITTED');
+    }
+
+    public function test_global_contribution_mode_blocks_worker_lines_and_can_return_to_detailed_mode(): void
+    {
+        $admin = $this->createAdminUser();
+        $employer = $this->createEmployer('EMP-GLOBAL-002', 'Global Mode Corp');
+        $worker = $this->createWorkerForEmployer($employer, 'MAT-GLOBAL-002');
+        $declaration = Declaration::query()->create([
+            'employer_id' => $employer->id,
+            'period_year' => 2026,
+            'period_month' => 10,
+            'due_date' => '2026-10-31',
+            'status' => 'DRAFT',
+        ]);
+
+        $this->actingAs($admin)
+            ->postJson('/api/declarations/'.$declaration->id.'/global-contribution', ['amount' => 1000])
+            ->assertOk();
+
+        $this->actingAs($admin)
+            ->postJson('/api/declarations/'.$declaration->id.'/lines', [
+                'worker_id' => $worker->id,
+                'gross_salary' => 1000,
+                'contributable_salary' => 900,
+            ])
+            ->assertStatus(422);
+
+        $this->actingAs($admin)
+            ->postJson('/api/declarations/'.$declaration->id.'/use-detailed-entry')
+            ->assertOk()
+            ->assertJsonPath('contribution_entry_mode', 'DETAILED')
+            ->assertJsonPath('global_contribution_amount', null)
+            ->assertJsonPath('total_declared_contribution', '0.00');
+    }
+
     private function createAdminUser(): User
     {
         $adminRole = Role::query()->create([

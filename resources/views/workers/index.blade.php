@@ -146,7 +146,7 @@
     table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 980px;
+        min-width: 860px;
     }
 
     th,
@@ -227,9 +227,12 @@
         font-size: .9rem;
     }
 
-    .panel-hidden {
-        display: none;
-    }
+    .worker-dialog { width: min(820px, calc(100% - 2rem)); max-height: calc(100vh - 2rem); border: 0; border-radius: 8px; padding: 0; color: #101828; box-shadow: 0 24px 60px rgba(6, 52, 109, .24); }
+    .worker-dialog::backdrop { background: rgba(6, 32, 66, .58); }
+    .modal-shell { padding: 1rem; }
+    .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: .8rem; margin-bottom: .9rem; border-bottom: 1px solid #e7eef2; }
+    .modal-head h2 { margin: 0; color: #06346d; font-size: 1.05rem; }
+    .modal-actions { justify-content: flex-end; margin-top: 1rem; }
 
     @media (max-width: 920px) {
         .grid {
@@ -241,18 +244,18 @@
 
 @section('content')
 <div class="worker-page">
-    <article class="panel panel-hidden" id="worker-form-panel">
-        <h2 id="form-title">Ajouter un travailleur</h2>
+    <dialog class="worker-dialog" id="worker-form-dialog">
+        <div class="modal-shell">
+        <div class="modal-head">
+            <h2 id="form-title">Ajouter un travailleur</h2>
+            <button type="button" class="btn btn-outline" id="close-dialog-top">Fermer</button>
+        </div>
         <form id="worker-form">
             <input type="hidden" id="worker-id">
             <div class="grid">
                 <div class="field">
-                    <label for="social_security_number">Numero SS</label>
+                    <label for="social_security_number">Numero matricule</label>
                     <input class="control" id="social_security_number" name="social_security_number" required maxlength="50">
-                </div>
-                <div class="field">
-                    <label for="national_id">Numero CIN</label>
-                    <input class="control" id="national_id" name="national_id" maxlength="50">
                 </div>
                 <div class="field">
                     <label for="first_name">Prenom</label>
@@ -293,7 +296,11 @@
                 </div>
                 <div class="field">
                     <label for="contract_type">Type contrat</label>
-                    <input class="control" id="contract_type" name="contract_type" maxlength="30">
+                    <select class="control" id="contract_type" name="contract_type">
+                        <option value="">Selectionner</option>
+                        <option value="CDI">CDI</option>
+                        <option value="CDD">CDD</option>
+                    </select>
                 </div>
                 <div class="field full">
                     <label for="base_salary">Salaire de base</label>
@@ -301,32 +308,33 @@
                 </div>
             </div>
 
-            <div class="actions">
+            <div class="actions modal-actions">
                 <button type="submit" class="btn btn-primary" id="save-btn">Enregistrer</button>
                 <button type="button" class="btn btn-outline" id="reset-btn">Reinitialiser</button>
-                <button type="button" class="btn btn-outline" id="close-form-btn">Fermer</button>
+                <button type="button" class="btn btn-outline" id="close-form-btn">Annuler</button>
             </div>
         </form>
         <p id="status-message" class="status-text"></p>
-    </article>
+        </div>
+    </dialog>
 
     <article class="panel">
         <div class="kpi" id="kpi-count">0 travailleur</div>
         <div class="toolbar">
-            <input class="control" id="search-input" placeholder="Rechercher par nom, numero SS, CIN, employeur...">
+            <input class="control" id="search-input" placeholder="Rechercher par nom, matricule ou employeur...">
             <div class="toolbar-actions">
-                <button id="toggle-form-btn" class="btn btn-primary" type="button">Ajouter un travailleur</button>
+                <button id="add-worker-btn" class="btn btn-primary" type="button">Ajouter un travailleur</button>
                 <button id="reload-btn" class="btn btn-outline" type="button">Rafraichir</button>
             </div>
         </div>
+        <p id="list-status-message" class="status-text"></p>
 
         <div class="table-wrap">
             <table>
                 <thead>
                 <tr>
-                    <th>Numero SS</th>
+                    <th>Matricule</th>
                     <th>Nom complet</th>
-                    <th>CIN</th>
                     <th>Employeur</th>
                     <th>Date embauche</th>
                     <th>Statut</th>
@@ -352,9 +360,9 @@
 
     const els = {
         form: document.getElementById('worker-form'),
-        formPanel: document.getElementById('worker-form-panel'),
+        formDialog: document.getElementById('worker-form-dialog'),
         formTitle: document.getElementById('form-title'),
-        toggleFormBtn: document.getElementById('toggle-form-btn'),
+        addWorkerBtn: document.getElementById('add-worker-btn'),
         workerId: document.getElementById('worker-id'),
         employerSelect: document.getElementById('employer_id'),
         searchInput: document.getElementById('search-input'),
@@ -362,14 +370,15 @@
         reloadBtn: document.getElementById('reload-btn'),
         resetBtn: document.getElementById('reset-btn'),
         closeFormBtn: document.getElementById('close-form-btn'),
+        closeDialogTop: document.getElementById('close-dialog-top'),
         saveBtn: document.getElementById('save-btn'),
         statusMessage: document.getElementById('status-message'),
+        listStatusMessage: document.getElementById('list-status-message'),
         kpiCount: document.getElementById('kpi-count'),
     };
 
     const formFields = [
         'social_security_number',
-        'national_id',
         'first_name',
         'last_name',
         'birth_date',
@@ -386,6 +395,11 @@
         els.statusMessage.className = type ? `status-text ${type}` : 'status-text';
     }
 
+    function setListStatus(message, type = '') {
+        els.listStatusMessage.textContent = message;
+        els.listStatusMessage.className = type ? `status-text ${type}` : 'status-text';
+    }
+
     function clearForm() {
         els.form.reset();
         els.workerId.value = '';
@@ -393,30 +407,24 @@
         document.getElementById('gender').value = '';
         document.getElementById('employment_start_date').value = new Date().toISOString().slice(0, 10);
         els.formTitle.textContent = 'Ajouter un travailleur';
-        els.toggleFormBtn.textContent = 'Ajouter un travailleur';
         setStatus('');
     }
 
     function showForm() {
-        els.formPanel.classList.remove('panel-hidden');
-        els.toggleFormBtn.textContent = 'Masquer formulaire';
+        if (!els.formDialog.open) {
+            els.formDialog.showModal();
+        }
     }
 
     function hideForm() {
-        els.formPanel.classList.add('panel-hidden');
-        els.toggleFormBtn.textContent = 'Ajouter un travailleur';
+        if (els.formDialog.open) {
+            els.formDialog.close();
+        }
     }
 
-    function toggleAddForm() {
-        const isHidden = els.formPanel.classList.contains('panel-hidden');
-        if (isHidden) {
-            clearForm();
-            showForm();
-            return;
-        }
-
+    function openAddForm() {
         clearForm();
-        hideForm();
+        showForm();
     }
 
     function fillForm(worker) {
@@ -429,8 +437,6 @@
             }
         });
         els.formTitle.textContent = `Modifier ${worker.first_name} ${worker.last_name}`;
-        els.toggleFormBtn.textContent = 'Masquer formulaire';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function badgeClass(status) {
@@ -444,7 +450,7 @@
         els.kpiCount.textContent = `${count} travailleur${count > 1 ? 's' : ''}`;
 
         if (count === 0) {
-            els.tableBody.innerHTML = '<tr><td colspan="7" class="empty">Aucun travailleur trouve.</td></tr>';
+            els.tableBody.innerHTML = '<tr><td colspan="6" class="empty">Aucun travailleur trouve.</td></tr>';
             return;
         }
 
@@ -452,7 +458,6 @@
             <tr>
                 <td>${escapeHtml(item.social_security_number || '-')}</td>
                 <td>${escapeHtml(`${item.first_name || ''} ${item.last_name || ''}`.trim() || '-')}</td>
-                <td>${escapeHtml(item.national_id || '-')}</td>
                 <td>${escapeHtml(item.employer_name || '-')}</td>
                 <td>${escapeHtml(item.employment_start_date || '-')}</td>
                 <td><span class="${badgeClass(item.status)}">${escapeHtml(item.status || 'ACTIVE')}</span></td>
@@ -477,7 +482,6 @@
         state.filtered = state.workers.filter((item) => {
             const blob = [
                 item.social_security_number,
-                item.national_id,
                 item.first_name,
                 item.last_name,
                 item.employer_name,
@@ -520,7 +524,7 @@
     }
 
     async function loadWorkers() {
-        setStatus('Chargement des travailleurs...');
+        setListStatus('Chargement des travailleurs...');
         els.reloadBtn.disabled = true;
 
         try {
@@ -532,9 +536,9 @@
             state.workers = await response.json();
             state.filtered = [...state.workers];
             renderWorkers();
-            setStatus(`${state.workers.length} travailleur(s) charge(s).`, 'ok');
+            setListStatus(`${state.workers.length} travailleur(s) charge(s).`, 'ok');
         } catch (error) {
-            setStatus(error.message || 'Erreur de chargement.', 'error');
+            setListStatus(error.message || 'Erreur de chargement.', 'error');
         } finally {
             els.reloadBtn.disabled = false;
         }
@@ -575,7 +579,7 @@
             clearForm();
             hideForm();
             await loadWorkers();
-            setStatus(isEdit ? 'Travailleur mis a jour.' : 'Travailleur cree.', 'ok');
+            setListStatus(isEdit ? 'Travailleur mis a jour.' : 'Travailleur cree.', 'ok');
         } catch (error) {
             setStatus(error.message || 'Erreur de sauvegarde.', 'error');
         } finally {
@@ -589,7 +593,7 @@
             return;
         }
 
-        setStatus('Suppression en cours...');
+        setListStatus('Suppression en cours...');
 
         try {
             const response = await fetch(`/api/workers/${id}`, {
@@ -610,9 +614,9 @@
             }
 
             await loadWorkers();
-            setStatus('Travailleur supprime.', 'ok');
+            setListStatus('Travailleur supprime.', 'ok');
         } catch (error) {
-            setStatus(error.message || 'Erreur de suppression.', 'error');
+            setListStatus(error.message || 'Erreur de suppression.', 'error');
         }
     }
 
@@ -631,7 +635,11 @@
         clearForm();
         hideForm();
     });
-    els.toggleFormBtn.addEventListener('click', toggleAddForm);
+    els.addWorkerBtn.addEventListener('click', openAddForm);
+    els.closeDialogTop.addEventListener('click', () => {
+        clearForm();
+        hideForm();
+    });
     els.searchInput.addEventListener('input', filterWorkers);
     els.reloadBtn.addEventListener('click', loadWorkers);
 
@@ -667,7 +675,7 @@
             clearForm();
             await loadWorkers();
         } catch (error) {
-            setStatus(error.message || 'Erreur d initialisation.', 'error');
+            setListStatus(error.message || 'Erreur d initialisation.', 'error');
         }
     }
 

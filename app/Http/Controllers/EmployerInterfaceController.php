@@ -34,7 +34,6 @@ class EmployerInterfaceController extends Controller
                     'id' => $worker->id,
                     'full_name' => trim(($worker->first_name ?? '').' '.($worker->last_name ?? '')),
                     'social_security_number' => $worker->social_security_number,
-                    'national_id' => $worker->national_id,
                     'status' => $worker->status,
                     'contract_type' => $latestEmployment->contract_type,
                     'start_date' => $latestEmployment->start_date?->format('Y-m-d'),

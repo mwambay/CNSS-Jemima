@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreDeclarationRequest;
+use App\Http\Requests\RecordGlobalContributionRequest;
 use App\Http\Requests\UpdateDeclarationRequest;
 use App\Http\Requests\UpsertDeclarationLineRequest;
 use App\Models\Declaration;
@@ -110,7 +111,10 @@ class DeclarationController extends Controller
     {
         $this->ensureDraft($declaration);
 
-        if ($declaration->declarationLines()->count() === 0) {
+        $hasGlobalAmount = $declaration->contribution_entry_mode === 'GLOBAL'
+            && $declaration->global_contribution_amount !== null;
+
+        if (!$hasGlobalAmount && $declaration->declarationLines()->count() === 0) {
             abort(422, 'Impossible de soumettre une declaration sans ligne.');
         }
 
@@ -161,6 +165,10 @@ class DeclarationController extends Controller
     public function upsertLine(UpsertDeclarationLineRequest $request, Declaration $declaration): JsonResponse
     {
         $this->ensureDraft($declaration);
+
+        if ($declaration->contribution_entry_mode === 'GLOBAL') {
+            abort(422, 'Revenez au mode detaille avant d ajouter une ligne de travailleur.');
+        }
 
         $data = $request->validated();
 
@@ -229,8 +237,65 @@ class DeclarationController extends Controller
     {
         $this->ensureDraft($declaration);
 
+        if ($declaration->contribution_entry_mode === 'GLOBAL') {
+            abort(422, 'Une declaration globale ne peut pas etre recalculee par travailleur.');
+        }
+
         DB::transaction(function () use ($declaration): void {
             $this->recalculateTotals($declaration);
+        });
+
+        $declaration->refresh()->load([
+            'employer',
+            'declarationLines' => function ($query): void {
+                $query->with(['worker', 'contributionCalc.rate'])->orderBy('id');
+            },
+        ]);
+
+        return response()->json($this->toDetails($declaration));
+    }
+
+    public function recordGlobalContribution(RecordGlobalContributionRequest $request, Declaration $declaration): JsonResponse
+    {
+        $this->ensureDraft($declaration);
+
+        $amount = round((float) $request->validated('amount'), 2);
+
+        $declaration->update([
+            'contribution_entry_mode' => 'GLOBAL',
+            'global_contribution_amount' => $amount,
+            'total_declared_contribution' => $amount,
+        ]);
+
+        $declaration->refresh()->load([
+            'employer',
+            'declarationLines' => function ($query): void {
+                $query->with(['worker', 'contributionCalc.rate'])->orderBy('id');
+            },
+        ]);
+
+        return response()->json($this->toDetails($declaration));
+    }
+
+    public function useDetailedEntry(Declaration $declaration): JsonResponse
+    {
+        $this->ensureDraft($declaration);
+
+        DB::transaction(function () use ($declaration): void {
+            $declaration->update([
+                'contribution_entry_mode' => 'DETAILED',
+                'global_contribution_amount' => null,
+            ]);
+
+            if ($declaration->declarationLines()->exists()) {
+                $this->recalculateTotals($declaration);
+                return;
+            }
+
+            $declaration->update([
+                'total_declared_salary' => 0,
+                'total_declared_contribution' => 0,
+            ]);
         });
 
         $declaration->refresh()->load([
@@ -269,6 +334,8 @@ class DeclarationController extends Controller
             'period_year' => $declaration->period_year,
             'period_month' => $declaration->period_month,
             'status' => $declaration->status,
+            'contribution_entry_mode' => $declaration->contribution_entry_mode ?? 'DETAILED',
+            'global_contribution_amount' => $declaration->global_contribution_amount,
             'due_date' => $dueDateValue,
             'submitted_at' => $declaration->submitted_at?->format('Y-m-d H:i:s'),
             'total_declared_salary' => $declaration->total_declared_salary,

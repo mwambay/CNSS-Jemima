@@ -44,7 +44,6 @@ class WorkerController extends Controller
         $worker = DB::transaction(function () use ($data): Worker {
             $worker = Worker::query()->create([
                 'social_security_number' => $data['social_security_number'],
-                'national_id' => $data['national_id'] ?? null,
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
                 'birth_date' => $data['birth_date'] ?? null,
@@ -87,7 +86,6 @@ class WorkerController extends Controller
         DB::transaction(function () use ($worker, $data): void {
             $worker->update([
                 'social_security_number' => $data['social_security_number'],
-                'national_id' => $data['national_id'] ?? null,
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
                 'birth_date' => $data['birth_date'] ?? null,
@@ -150,7 +148,6 @@ class WorkerController extends Controller
         return [
             'id' => $worker->id,
             'social_security_number' => $worker->social_security_number,
-            'national_id' => $worker->national_id,
             'first_name' => $worker->first_name,
             'last_name' => $worker->last_name,
             'birth_date' => $birthDateValue,

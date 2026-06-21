@@ -253,6 +253,15 @@
         font-weight: 600;
     }
 
+    .global-dialog { width: min(520px, calc(100% - 2rem)); border: 0; border-radius: 8px; padding: 0; color: #101828; box-shadow: 0 24px 60px rgba(6, 52, 109, .24); }
+    .global-dialog::backdrop { background: rgba(6, 32, 66, .58); }
+    .modal-shell { padding: 1rem; }
+    .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: .8rem; margin-bottom: .9rem; border-bottom: 1px solid #e7eef2; }
+    .modal-head h2 { margin: 0; color: #06346d; font-size: 1.05rem; }
+    .modal-copy { margin: 0 0 .85rem; color: #667085; font-size: .88rem; line-height: 1.45; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: .55rem; margin-top: 1rem; }
+    .mode-global { color: #006f66; background: #e4f7f3; }
+
     @media (max-width: 960px) {
         .meta-grid,
         .grid {
@@ -278,6 +287,8 @@
                 <h2 id="details-title">Declaration</h2>
                 <div class="toolbar-right actions">
                     <a href="{{ route('declarations.interface') }}" class="btn btn-outline">Retour a la liste</a>
+                    <button id="record-global-contribution-btn" class="btn btn-primary" type="button">Enregistrer le montant declare</button>
+                    <button id="use-detailed-entry-btn" class="btn btn-outline is-hidden" type="button">Revenir au detail par travailleur</button>
                     <button id="recalculate-declaration-btn" class="btn btn-outline" type="button">Recalculer cotisations</button>
                     <button id="submit-declaration-btn" class="btn btn-primary" type="button">Soumettre</button>
                     <button id="validate-declaration-btn" class="btn btn-outline" type="button">Valider</button>
@@ -297,6 +308,10 @@
                 <div class="meta-card">
                     <span class="meta-label">Statut</span>
                     <span class="meta-value"><span id="meta-status" class="badge badge-draft">-</span></span>
+                </div>
+                <div class="meta-card">
+                    <span class="meta-label">Mode de saisie</span>
+                    <span class="meta-value"><span id="meta-entry-mode" class="badge badge-draft">DETAILLE</span></span>
                 </div>
                 <div class="meta-card">
                     <span class="meta-label">Echeance</span>
@@ -362,12 +377,14 @@
 
             <p id="line-status" class="status-text"></p>
 
+            <div id="global-mode-notice" class="notice is-hidden">Le montant global est actif. Les lignes par travailleur sont conservees mais ne participent pas au total declare.</div>
+
             <div id="lines-table-block" class="table-wrap">
                 <table>
                     <thead>
                     <tr>
                         <th>Travailleur</th>
-                        <th>Numero SS</th>
+                        <th>Matricule</th>
                         <th>Brut</th>
                         <th>Cotisable</th>
                         <th>Part employeur</th>
@@ -382,6 +399,25 @@
                 </table>
             </div>
         </article>
+
+        <dialog class="global-dialog" id="global-contribution-dialog">
+            <div class="modal-shell">
+                <div class="modal-head">
+                    <h2>Montant global declare</h2>
+                    <button id="close-global-dialog" class="btn btn-outline" type="button">Fermer</button>
+                </div>
+                <p class="modal-copy">Ce montant devient le total declare a la CNSS pour cette periode. Les lignes par travailleur restent conservees mais sont ignorees tant que le mode global est actif.</p>
+                <div class="field">
+                    <label for="global_contribution_amount">Montant declare</label>
+                    <input class="control" id="global_contribution_amount" type="number" min="0" step="0.01" required>
+                </div>
+                <p id="global-contribution-status" class="status-text"></p>
+                <div class="modal-actions">
+                    <button id="cancel-global-contribution" class="btn btn-outline" type="button">Annuler</button>
+                    <button id="save-global-contribution" class="btn btn-primary" type="button">Enregistrer le montant</button>
+                </div>
+            </div>
+        </dialog>
     @endif
 </div>
 @endsection
@@ -402,6 +438,7 @@
         metaEmployer: document.getElementById('meta-employer'),
         metaPeriod: document.getElementById('meta-period'),
         metaStatus: document.getElementById('meta-status'),
+        metaEntryMode: document.getElementById('meta-entry-mode'),
         metaDueDate: document.getElementById('meta-due-date'),
         metaTotalSalary: document.getElementById('meta-total-salary'),
         metaTotalContribution: document.getElementById('meta-total-contribution'),
@@ -423,6 +460,15 @@
         submitDeclarationBtn: document.getElementById('submit-declaration-btn'),
         validateDeclarationBtn: document.getElementById('validate-declaration-btn'),
         rejectDeclarationBtn: document.getElementById('reject-declaration-btn'),
+        recordGlobalContributionBtn: document.getElementById('record-global-contribution-btn'),
+        useDetailedEntryBtn: document.getElementById('use-detailed-entry-btn'),
+        globalContributionDialog: document.getElementById('global-contribution-dialog'),
+        globalContributionAmount: document.getElementById('global_contribution_amount'),
+        globalContributionStatus: document.getElementById('global-contribution-status'),
+        closeGlobalDialog: document.getElementById('close-global-dialog'),
+        cancelGlobalContribution: document.getElementById('cancel-global-contribution'),
+        saveGlobalContribution: document.getElementById('save-global-contribution'),
+        globalModeNotice: document.getElementById('global-mode-notice'),
     };
 
     function setStatus(target, message, type = '') {
@@ -465,6 +511,9 @@
         els.metaPeriod.textContent = `${String(declaration.period_month).padStart(2, '0')}/${declaration.period_year}`;
         els.metaStatus.className = statusBadgeClass(declaration.status);
         els.metaStatus.textContent = declaration.status || '-';
+        const isGlobal = declaration.contribution_entry_mode === 'GLOBAL';
+        els.metaEntryMode.className = `badge ${isGlobal ? 'mode-global' : 'badge-draft'}`;
+        els.metaEntryMode.textContent = isGlobal ? 'GLOBAL' : 'DETAILLE';
         els.metaDueDate.textContent = declaration.due_date || '-';
         els.metaTotalSalary.textContent = declaration.total_declared_salary ?? '0';
         els.metaTotalContribution.textContent = declaration.total_declared_contribution ?? '0';
@@ -479,7 +528,15 @@
         }
 
         const isDraft = state.declaration.status === 'DRAFT';
+        const isGlobal = state.declaration.contribution_entry_mode === 'GLOBAL';
         const lines = state.declaration.lines || [];
+
+        els.globalModeNotice.classList.toggle('is-hidden', !isGlobal);
+
+        if (isGlobal) {
+            els.linesTableBody.innerHTML = `<tr><td colspan="10" class="empty">Montant global declare: ${escapeHtml(state.declaration.global_contribution_amount ?? '0')}</td></tr>`;
+            return;
+        }
 
         if (lines.length === 0) {
             els.linesTableBody.innerHTML = '<tr><td colspan="10" class="empty">Aucune ligne dans cette declaration.</td></tr>';
@@ -527,16 +584,20 @@
         const status = state.declaration?.status;
         const isDraft = status === 'DRAFT';
         const isSubmitted = status === 'SUBMITTED';
+        const isGlobal = state.declaration?.contribution_entry_mode === 'GLOBAL';
 
         els.submitDeclarationBtn.disabled = !isDraft;
-        els.recalculateDeclarationBtn.disabled = !isDraft;
-        els.saveLineBtn.disabled = !isDraft;
-        els.toggleLineFormBtn.disabled = !isDraft;
-        els.lineWorkerSelect.disabled = !isDraft;
-        els.lineGrossSalary.disabled = !isDraft;
-        els.lineContributableSalary.disabled = !isDraft;
-        els.lineWorkedDays.disabled = !isDraft;
-        els.lineAnomalyReason.disabled = !isDraft;
+        els.recordGlobalContributionBtn.disabled = !isDraft;
+        els.recordGlobalContributionBtn.textContent = isGlobal ? 'Modifier le montant declare' : 'Enregistrer le montant declare';
+        els.useDetailedEntryBtn.classList.toggle('is-hidden', !isDraft || !isGlobal);
+        els.recalculateDeclarationBtn.disabled = !isDraft || isGlobal;
+        els.saveLineBtn.disabled = !isDraft || isGlobal;
+        els.toggleLineFormBtn.disabled = !isDraft || isGlobal;
+        els.lineWorkerSelect.disabled = !isDraft || isGlobal;
+        els.lineGrossSalary.disabled = !isDraft || isGlobal;
+        els.lineContributableSalary.disabled = !isDraft || isGlobal;
+        els.lineWorkedDays.disabled = !isDraft || isGlobal;
+        els.lineAnomalyReason.disabled = !isDraft || isGlobal;
         els.validateDeclarationBtn.disabled = !isSubmitted;
         els.rejectDeclarationBtn.disabled = !isSubmitted;
 
@@ -722,6 +783,80 @@
         }
     }
 
+    function openGlobalContributionDialog() {
+        if (!state.declaration) {
+            return;
+        }
+
+        els.globalContributionAmount.value = state.declaration.global_contribution_amount ?? state.declaration.total_declared_contribution ?? '';
+        setStatus(els.globalContributionStatus, '');
+        els.globalContributionDialog.showModal();
+    }
+
+    async function saveGlobalContribution() {
+        if (!state.declaration) {
+            return;
+        }
+
+        setStatus(els.globalContributionStatus, 'Enregistrement en cours...');
+        els.saveGlobalContribution.disabled = true;
+
+        try {
+            const response = await fetch(`/api/declarations/${state.declaration.id}/global-contribution`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify({ amount: els.globalContributionAmount.value }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({}));
+                const message = Object.values(data.errors || {}).flat().join(' ');
+                throw new Error(message || 'Enregistrement du montant impossible.');
+            }
+
+            state.declaration = await response.json();
+            els.globalContributionDialog.close();
+            renderDeclaration();
+            renderLines();
+            updateWorkflowButtons();
+            showLinesTable();
+            setDeclarationStatus('Montant global enregistre.', 'ok');
+        } catch (error) {
+            setStatus(els.globalContributionStatus, error.message || 'Erreur d enregistrement.', 'error');
+        } finally {
+            els.saveGlobalContribution.disabled = false;
+        }
+    }
+
+    async function useDetailedEntry() {
+        if (!state.declaration) {
+            return;
+        }
+
+        const response = await fetch(`/api/declarations/${state.declaration.id}/use-detailed-entry`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+            },
+        });
+
+        if (!response.ok) {
+            setDeclarationStatus('Retour au mode detaille impossible.', 'error');
+            return;
+        }
+
+        state.declaration = await response.json();
+        renderDeclaration();
+        renderLines();
+        updateWorkflowButtons();
+        setDeclarationStatus('Mode detaille active.', 'ok');
+    }
+
     els.saveLineBtn.addEventListener('click', saveLine);
     els.toggleLineFormBtn.addEventListener('click', () => {
         const shouldShowForm = els.lineFormBlock.classList.contains('is-hidden');
@@ -741,6 +876,11 @@
     els.submitDeclarationBtn.addEventListener('click', () => changeWorkflow('submit'));
     els.validateDeclarationBtn.addEventListener('click', () => changeWorkflow('validate'));
     els.rejectDeclarationBtn.addEventListener('click', () => changeWorkflow('reject'));
+    els.recordGlobalContributionBtn.addEventListener('click', openGlobalContributionDialog);
+    els.closeGlobalDialog.addEventListener('click', () => els.globalContributionDialog.close());
+    els.cancelGlobalContribution.addEventListener('click', () => els.globalContributionDialog.close());
+    els.saveGlobalContribution.addEventListener('click', saveGlobalContribution);
+    els.useDetailedEntryBtn.addEventListener('click', useDetailedEntry);
 
     els.linesTableBody.addEventListener('click', async (event) => {
         const target = event.target;

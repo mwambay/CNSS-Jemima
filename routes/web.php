@@ -54,6 +54,8 @@ Route::middleware('auth')->group(function (): void {
             Route::post('declarations/{declaration}/validate', [DeclarationController::class, 'validateDeclaration']);
             Route::post('declarations/{declaration}/reject', [DeclarationController::class, 'rejectDeclaration']);
             Route::post('declarations/{declaration}/recalculate', [DeclarationController::class, 'recalculate']);
+            Route::post('declarations/{declaration}/global-contribution', [DeclarationController::class, 'recordGlobalContribution']);
+            Route::post('declarations/{declaration}/use-detailed-entry', [DeclarationController::class, 'useDetailedEntry']);
             Route::post('declarations/{declaration}/lines', [DeclarationController::class, 'upsertLine']);
             Route::delete('declarations/{declaration}/lines/{declarationLine}', [DeclarationController::class, 'destroyLine']);
         });

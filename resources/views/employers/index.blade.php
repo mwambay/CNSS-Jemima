@@ -225,16 +225,19 @@
         font-weight: 600;
     }
 
-    .panel-hidden {
-        display: none;
-    }
-
     .empty {
         padding: 1.2rem;
         text-align: center;
         color: #667085;
         font-size: .9rem;
     }
+
+    .employer-dialog { width: min(820px, calc(100% - 2rem)); max-height: calc(100vh - 2rem); border: 0; border-radius: 8px; padding: 0; color: #101828; box-shadow: 0 24px 60px rgba(6, 52, 109, .24); }
+    .employer-dialog::backdrop { background: rgba(6, 32, 66, .58); }
+    .modal-shell { padding: 1rem; }
+    .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: .8rem; margin-bottom: .9rem; border-bottom: 1px solid #e7eef2; }
+    .modal-head h2 { margin: 0; color: #06346d; font-size: 1.05rem; }
+    .modal-actions { justify-content: flex-end; margin-top: 1rem; flex-wrap: wrap; }
 
     @media (max-width: 1080px) {
         .employer-page {
@@ -256,8 +259,12 @@
 
 @section('content')
     <div class="employer-page">
-        <article class="panel panel-hidden" id="employer-form-panel">
-            <h2 id="form-title">Ajouter un employeur</h2>
+        <dialog class="employer-dialog" id="employer-form-dialog">
+            <div class="modal-shell">
+            <div class="modal-head">
+                <h2 id="form-title">Ajouter un employeur</h2>
+                <button type="button" class="btn btn-outline" id="close-dialog-top">Fermer</button>
+            </div>
             <form id="employer-form">
                 <input type="hidden" id="employer-id">
                 <div class="grid">
@@ -315,24 +322,26 @@
                     </div>
                 </div>
 
-                <div class="actions">
+                <div class="actions modal-actions">
                     <button type="submit" class="btn btn-primary" id="save-btn">Enregistrer</button>
                     <button type="button" class="btn btn-outline" id="reset-btn">Reinitialiser</button>
-                    <button type="button" class="btn btn-outline" id="close-form-btn">Fermer</button>
+                    <button type="button" class="btn btn-outline" id="close-form-btn">Annuler</button>
                 </div>
             </form>
             <p id="status-message" class="status-text"></p>
-        </article>
+            </div>
+        </dialog>
 
         <article class="panel">
             <div class="kpi" id="kpi-count">0 employeur</div>
             <div class="toolbar">
                 <input class="control" id="search-input" placeholder="Rechercher par raison sociale, affiliation, NIF...">
                 <div class="toolbar-actions">
-                    <button id="toggle-form-btn" class="btn btn-primary" type="button">Ajouter un employeur</button>
+                    <button id="add-employer-btn" class="btn btn-primary" type="button">Ajouter un employeur</button>
                     <button id="reload-btn" class="btn btn-outline" type="button">Rafraichir</button>
                 </div>
             </div>
+            <p id="list-status-message" class="status-text"></p>
 
             <div class="table-wrap">
                 <table>
@@ -364,17 +373,19 @@
 
     const els = {
         form: document.getElementById('employer-form'),
-        formPanel: document.getElementById('employer-form-panel'),
+        formDialog: document.getElementById('employer-form-dialog'),
         formTitle: document.getElementById('form-title'),
-        toggleFormBtn: document.getElementById('toggle-form-btn'),
+        addEmployerBtn: document.getElementById('add-employer-btn'),
         employerId: document.getElementById('employer-id'),
         searchInput: document.getElementById('search-input'),
         tableBody: document.getElementById('employer-table-body'),
         reloadBtn: document.getElementById('reload-btn'),
         resetBtn: document.getElementById('reset-btn'),
         closeFormBtn: document.getElementById('close-form-btn'),
+        closeDialogTop: document.getElementById('close-dialog-top'),
         saveBtn: document.getElementById('save-btn'),
         statusMessage: document.getElementById('status-message'),
+        listStatusMessage: document.getElementById('list-status-message'),
         kpiCount: document.getElementById('kpi-count'),
     };
 
@@ -397,36 +408,35 @@
         els.statusMessage.className = type ? `status-text ${type}` : 'status-text';
     }
 
+    function setListStatus(message, type = '') {
+        els.listStatusMessage.textContent = message;
+        els.listStatusMessage.className = type ? `status-text ${type}` : 'status-text';
+    }
+
     function clearForm() {
         els.form.reset();
         els.employerId.value = '';
         document.getElementById('status').value = 'ACTIVE';
         document.getElementById('verification_status').value = 'PENDING';
         els.formTitle.textContent = 'Ajouter un employeur';
-        els.toggleFormBtn.textContent = 'Ajouter un employeur';
         setStatus('');
     }
 
     function showForm() {
-        els.formPanel.classList.remove('panel-hidden');
-        els.toggleFormBtn.textContent = 'Masquer formulaire';
+        if (!els.formDialog.open) {
+            els.formDialog.showModal();
+        }
     }
 
     function hideForm() {
-        els.formPanel.classList.add('panel-hidden');
-        els.toggleFormBtn.textContent = 'Ajouter un employeur';
+        if (els.formDialog.open) {
+            els.formDialog.close();
+        }
     }
 
-    function toggleAddForm() {
-        const isHidden = els.formPanel.classList.contains('panel-hidden');
-        if (isHidden) {
-            clearForm();
-            showForm();
-            return;
-        }
-
+    function openAddForm() {
         clearForm();
-        hideForm();
+        showForm();
     }
 
     function fillForm(employer) {
@@ -437,8 +447,6 @@
             input.value = employer[field] ?? '';
         });
         els.formTitle.textContent = `Modifier ${employer.legal_name}`;
-        els.toggleFormBtn.textContent = 'Masquer formulaire';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function badgeClass(status) {
@@ -513,7 +521,7 @@
     }
 
     async function loadEmployers() {
-        setStatus('Chargement des employeurs...');
+        setListStatus('Chargement des employeurs...');
         els.reloadBtn.disabled = true;
 
         try {
@@ -525,9 +533,9 @@
             state.employers = await response.json();
             state.filtered = [...state.employers];
             renderEmployers();
-            setStatus(`${state.employers.length} employeur(s) charge(s).`, 'ok');
+            setListStatus(`${state.employers.length} employeur(s) charge(s).`, 'ok');
         } catch (error) {
-            setStatus(error.message || 'Erreur de chargement.', 'error');
+            setListStatus(error.message || 'Erreur de chargement.', 'error');
         } finally {
             els.reloadBtn.disabled = false;
         }
@@ -568,7 +576,7 @@
             clearForm();
             hideForm();
             await loadEmployers();
-            setStatus(isEdit ? 'Employeur mis a jour.' : 'Employeur cree.', 'ok');
+            setListStatus(isEdit ? 'Employeur mis a jour.' : 'Employeur cree.', 'ok');
         } catch (error) {
             setStatus(error.message || 'Erreur de sauvegarde.', 'error');
         } finally {
@@ -582,7 +590,7 @@
             return;
         }
 
-        setStatus('Suppression en cours...');
+        setListStatus('Suppression en cours...');
 
         try {
             const response = await fetch(`/api/employers/${id}`, {
@@ -603,9 +611,9 @@
             }
 
             await loadEmployers();
-            setStatus('Employeur supprime.', 'ok');
+            setListStatus('Employeur supprime.', 'ok');
         } catch (error) {
-            setStatus(error.message || 'Erreur de suppression.', 'error');
+            setListStatus(error.message || 'Erreur de suppression.', 'error');
         }
     }
 
@@ -624,7 +632,11 @@
         clearForm();
         hideForm();
     });
-    els.toggleFormBtn.addEventListener('click', toggleAddForm);
+    els.addEmployerBtn.addEventListener('click', openAddForm);
+    els.closeDialogTop.addEventListener('click', () => {
+        clearForm();
+        hideForm();
+    });
     els.searchInput.addEventListener('input', filterEmployers);
     els.reloadBtn.addEventListener('click', loadEmployers);
 

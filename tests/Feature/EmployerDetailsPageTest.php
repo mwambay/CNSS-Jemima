@@ -34,7 +34,6 @@ class EmployerDetailsPageTest extends TestCase
 
         $worker = Worker::query()->create([
             'social_security_number' => 'SS-DETAIL-001',
-            'national_id' => 'CIN-DETAIL-001',
             'first_name' => 'Awa',
             'last_name' => 'Sow',
             'status' => 'ACTIVE',
