@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AffiliationRequestController;
 use App\Http\Controllers\ContributionRateController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeclarationController;
 use App\Http\Controllers\DeclarationInterfaceController;
 use App\Http\Controllers\EmployerController;
@@ -21,9 +22,7 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::middleware('auth')->group(function (): void {
-    Route::get('/', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/employeurs', [EmployerInterfaceController::class, 'index'])->name('employers.interface');
     Route::get('/employeurs/{employer}', [EmployerInterfaceController::class, 'show'])->name('employers.show');
