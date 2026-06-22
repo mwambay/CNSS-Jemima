@@ -253,6 +253,49 @@
         font-weight: 600;
     }
 
+    .contribution-alert-banner {
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr);
+        align-items: center;
+        gap: .9rem;
+        border: 1px solid #f79009;
+        border-left: 6px solid #dc6803;
+        border-radius: 8px;
+        padding: 1rem 1.1rem;
+        background: #fffaeb;
+        color: #7a2e0e;
+        box-shadow: 0 4px 12px rgba(181, 71, 8, .14);
+    }
+
+    .contribution-alert-banner.is-hidden {
+        display: none;
+    }
+
+    .contribution-alert-icon {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: #dc6803;
+        color: #fff;
+        font-size: 1.35rem;
+        font-weight: 800;
+    }
+
+    .contribution-alert-banner h2 {
+        margin: 0 0 .25rem;
+        color: #7a2e0e;
+        font-size: 1.05rem;
+    }
+
+    .contribution-alert-banner p {
+        margin: 0;
+        line-height: 1.5;
+        font-size: .92rem;
+        font-weight: 600;
+    }
+
     .global-dialog { width: min(520px, calc(100% - 2rem)); border: 0; border-radius: 8px; padding: 0; color: #101828; box-shadow: 0 24px 60px rgba(6, 52, 109, .24); }
     .global-dialog::backdrop { background: rgba(6, 32, 66, .58); }
     .modal-shell { padding: 1rem; }
@@ -266,7 +309,7 @@
     .calculation-item strong { display: block; margin-top: .2rem; color: #06346d; font-size: 1rem; }
     .calculation-item.total { grid-column: 1 / -1; border-color: #8acdc4; background: #e4f7f3; }
     .calculation-item.total strong { color: #006f66; font-size: 1.2rem; }
-    .contribution-check { margin-top: .7rem; border-radius: 8px; padding: .7rem; font-size: .86rem; font-weight: 700; }
+    .contribution-check { margin-top: .7rem; border-radius: 8px; border-left-width: 5px !important; padding: .9rem; font-size: .95rem; font-weight: 800; }
     .contribution-check.ok { color: #027a48; background: #ecfdf3; border: 1px solid #a6f4c5; }
     .contribution-check.warning { color: #b54708; background: #fffaeb; border: 1px solid #fedf89; }
 
@@ -290,6 +333,14 @@
             <div class="notice">Acces restreint: vous n'avez pas les droits ADMIN pour gerer les declarations.</div>
         </article>
     @else
+        <section id="contribution-alert-banner" class="contribution-alert-banner is-hidden" role="alert" aria-live="polite">
+            <div class="contribution-alert-icon" aria-hidden="true">!</div>
+            <div>
+                <h2 id="contribution-alert-title">Anomalie de cotisation</h2>
+                <p id="contribution-alert-message"></p>
+            </div>
+        </section>
+
         <article class="panel">
             <div class="toolbar">
                 <h2 id="details-title">Declaration</h2>
@@ -338,6 +389,22 @@
                     <span class="meta-value" id="meta-amount-due">-</span>
                 </div>
                 <div class="meta-card">
+                    <span class="meta-label">Date de versement</span>
+                    <span class="meta-value" id="meta-contribution-date">-</span>
+                </div>
+                <div class="meta-card">
+                    <span class="meta-label">Retard</span>
+                    <span class="meta-value" id="meta-late-days">-</span>
+                </div>
+                <div class="meta-card">
+                    <span class="meta-label">Majoration</span>
+                    <span class="meta-value" id="meta-late-penalty">-</span>
+                </div>
+                <div class="meta-card">
+                    <span class="meta-label">Total exigible</span>
+                    <span class="meta-value" id="meta-total-payable">-</span>
+                </div>
+                <div class="meta-card">
                     <span class="meta-label">Coherence cotisation</span>
                     <span class="meta-value" id="meta-contribution-check">-</span>
                 </div>
@@ -368,11 +435,11 @@
                         <select class="control" id="line_worker_id" name="line_worker_id" required></select>
                     </div>
                     <div class="field">
-                        <label for="line_gross_salary">Salaire brut</label>
+                        <label for="line_gross_salary">Salaire brut (CDF)</label>
                         <input class="control" id="line_gross_salary" type="number" min="0" step="0.01" required>
                     </div>
                     <div class="field">
-                        <label for="line_contributable_salary">Salaire cotisable</label>
+                        <label for="line_contributable_salary">Salaire cotisable (CDF)</label>
                         <input class="control" id="line_contributable_salary" type="number" min="0" step="0.01" required>
                     </div>
                     <div class="field">
@@ -422,7 +489,7 @@
                     <h2>Calcul du montant du</h2>
                     <button id="close-global-dialog" class="btn btn-outline" type="button">Fermer</button>
                 </div>
-                <p class="modal-copy">Le montant est calcule automatiquement a partir des salaires des travailleurs actifs de l'employeur et du taux applicable a la periode.</p>
+                <p class="modal-copy">Le montant est calcule automatiquement a partir des salaires, du taux applicable et de la date reelle de versement.</p>
                 <div class="calculation-grid" id="global-calculation-preview">
                     <div class="calculation-item"><span class="meta-label">Travailleurs actifs</span><strong id="preview-worker-count">-</strong></div>
                     <div class="calculation-item"><span class="meta-label">Enveloppe salariale</span><strong id="preview-salary-envelope">-</strong></div>
@@ -430,9 +497,18 @@
                     <div class="calculation-item"><span class="meta-label">Part travailleur</span><strong id="preview-worker-rate">-</strong></div>
                     <div class="calculation-item"><span class="meta-label">Taux total</span><strong id="preview-total-rate">-</strong></div>
                     <div class="calculation-item total"><span class="meta-label">Montant du a la CNSS</span><strong id="preview-amount-due">-</strong></div>
+                    <div class="calculation-item"><span class="meta-label">Echeance legale</span><strong id="preview-due-date">-</strong></div>
+                    <div class="calculation-item"><span class="meta-label">Majoration par jour</span><strong id="preview-late-rate">-</strong></div>
+                    <div class="calculation-item"><span class="meta-label">Jours de retard</span><strong id="preview-late-days">-</strong></div>
+                    <div class="calculation-item"><span class="meta-label">Majoration</span><strong id="preview-penalty-amount">-</strong></div>
+                    <div class="calculation-item total"><span class="meta-label">Total exigible</span><strong id="preview-total-payable">-</strong></div>
                 </div>
                 <div class="field" style="margin-top:.8rem;">
-                    <label for="global_contributed_amount">Montant cotise par l'employeur</label>
+                    <label for="global_contribution_date">Date de versement</label>
+                    <input class="control" id="global_contribution_date" type="date" max="{{ now()->toDateString() }}" required>
+                </div>
+                <div class="field" style="margin-top:.8rem;">
+                    <label for="global_contributed_amount">Montant cotise par l'employeur (CDF)</label>
                     <input class="control" id="global_contributed_amount" type="number" min="0" step="0.01" required>
                 </div>
                 <div id="global-contribution-check" class="contribution-check warning is-hidden"></div>
@@ -460,6 +536,9 @@
     const els = {
         detailsTitle: document.getElementById('details-title'),
         declarationStatus: document.getElementById('declaration-status'),
+        contributionAlertBanner: document.getElementById('contribution-alert-banner'),
+        contributionAlertTitle: document.getElementById('contribution-alert-title'),
+        contributionAlertMessage: document.getElementById('contribution-alert-message'),
         metaEmployer: document.getElementById('meta-employer'),
         metaPeriod: document.getElementById('meta-period'),
         metaStatus: document.getElementById('meta-status'),
@@ -468,6 +547,10 @@
         metaTotalSalary: document.getElementById('meta-total-salary'),
         metaTotalContribution: document.getElementById('meta-total-contribution'),
         metaAmountDue: document.getElementById('meta-amount-due'),
+        metaContributionDate: document.getElementById('meta-contribution-date'),
+        metaLateDays: document.getElementById('meta-late-days'),
+        metaLatePenalty: document.getElementById('meta-late-penalty'),
+        metaTotalPayable: document.getElementById('meta-total-payable'),
         metaContributionCheck: document.getElementById('meta-contribution-check'),
         metaLinesCount: document.getElementById('meta-lines-count'),
         metaValidationMessage: document.getElementById('meta-validation-message'),
@@ -497,6 +580,12 @@
         previewWorkerRate: document.getElementById('preview-worker-rate'),
         previewTotalRate: document.getElementById('preview-total-rate'),
         previewAmountDue: document.getElementById('preview-amount-due'),
+        previewDueDate: document.getElementById('preview-due-date'),
+        previewLateRate: document.getElementById('preview-late-rate'),
+        previewLateDays: document.getElementById('preview-late-days'),
+        previewPenaltyAmount: document.getElementById('preview-penalty-amount'),
+        previewTotalPayable: document.getElementById('preview-total-payable'),
+        globalContributionDate: document.getElementById('global_contribution_date'),
         globalContributedAmount: document.getElementById('global_contributed_amount'),
         globalContributionCheck: document.getElementById('global-contribution-check'),
         closeGlobalDialog: document.getElementById('close-global-dialog'),
@@ -549,16 +638,42 @@
         els.metaEntryMode.className = `badge ${isGlobal ? 'mode-global' : 'badge-draft'}`;
         els.metaEntryMode.textContent = isGlobal ? 'GLOBAL' : 'DETAILLE';
         els.metaDueDate.textContent = declaration.due_date || '-';
-        els.metaTotalSalary.textContent = declaration.total_declared_salary ?? '0';
-        els.metaTotalContribution.textContent = declaration.total_declared_contribution ?? '0';
-        els.metaAmountDue.textContent = isGlobal ? (declaration.global_amount_due ?? '-') : '-';
+        els.metaTotalSalary.textContent = `${formatAmount(declaration.total_declared_salary)} CDF`;
+        els.metaTotalContribution.textContent = `${formatAmount(declaration.total_declared_contribution)} CDF`;
+        els.metaAmountDue.textContent = isGlobal && declaration.global_amount_due !== null
+            ? `${formatAmount(declaration.global_amount_due)} CDF`
+            : '-';
+        els.metaContributionDate.textContent = isGlobal ? (declaration.global_contribution_date || '-') : '-';
+        els.metaLateDays.textContent = isGlobal && declaration.global_late_days !== null
+            ? `${declaration.global_late_days} jour${Number(declaration.global_late_days) > 1 ? 's' : ''}`
+            : '-';
+        els.metaLatePenalty.textContent = isGlobal && declaration.global_late_penalty_amount !== null
+            ? `${formatAmount(declaration.global_late_penalty_amount)} CDF`
+            : '-';
+        els.metaTotalPayable.textContent = isGlobal && declaration.global_total_payable !== null
+            ? `${formatAmount(declaration.global_total_payable)} CDF`
+            : '-';
         if (isGlobal && declaration.global_contribution_status) {
             const difference = Number(declaration.global_contribution_difference || 0);
             els.metaContributionCheck.textContent = declaration.global_contribution_status === 'CONFORME'
                 ? 'CONFORME'
                 : `${declaration.global_contribution_status} (${formatAmount(Math.abs(difference))} CDF)`;
+
+            if (declaration.global_contribution_status === 'CONFORME') {
+                els.contributionAlertBanner.classList.add('is-hidden');
+            } else {
+                const isInsufficient = declaration.global_contribution_status === 'INSUFFISANT';
+                els.contributionAlertTitle.textContent = isInsufficient
+                    ? 'Alerte: cotisation insuffisante'
+                    : 'Alerte: cotisation superieure au montant du';
+                els.contributionAlertMessage.textContent = isInsufficient
+                    ? `L'employeur a cotise ${formatAmount(declaration.global_contribution_amount)} CDF sur un total exigible de ${formatAmount(declaration.global_total_payable ?? declaration.global_amount_due)} CDF, dont ${formatAmount(declaration.global_late_penalty_amount)} CDF de majoration. Il manque ${formatAmount(Math.abs(difference))} CDF.`
+                    : `L'employeur a cotise ${formatAmount(declaration.global_contribution_amount)} CDF pour un total exigible de ${formatAmount(declaration.global_total_payable ?? declaration.global_amount_due)} CDF. Le depassement est de ${formatAmount(Math.abs(difference))} CDF.`;
+                els.contributionAlertBanner.classList.remove('is-hidden');
+            }
         } else {
             els.metaContributionCheck.textContent = '-';
+            els.contributionAlertBanner.classList.add('is-hidden');
         }
         els.metaLinesCount.textContent = String((declaration.lines || []).length);
         els.metaValidationMessage.textContent = declaration.validation_message || '-';
@@ -578,7 +693,7 @@
 
         if (isGlobal) {
             const status = state.declaration.global_contribution_status || 'NON VERIFIE';
-            els.linesTableBody.innerHTML = `<tr><td colspan="10" class="empty">Montant du: ${escapeHtml(state.declaration.global_amount_due ?? '0')} CDF | Montant cotise: ${escapeHtml(state.declaration.global_contribution_amount ?? '0')} CDF | ${escapeHtml(status)}</td></tr>`;
+            els.linesTableBody.innerHTML = `<tr><td colspan="10" class="empty">Montant du: ${escapeHtml(formatAmount(state.declaration.global_amount_due))} CDF | Majoration: ${escapeHtml(formatAmount(state.declaration.global_late_penalty_amount))} CDF | Total exigible: ${escapeHtml(formatAmount(state.declaration.global_total_payable ?? state.declaration.global_amount_due))} CDF | Montant cotise: ${escapeHtml(formatAmount(state.declaration.global_contribution_amount))} CDF | ${escapeHtml(status)}</td></tr>`;
             return;
         }
 
@@ -591,11 +706,11 @@
             <tr>
                 <td>${escapeHtml(line.worker_name || '-')}</td>
                 <td>${escapeHtml(line.worker_ssn || '-')}</td>
-                <td>${escapeHtml(line.gross_salary ?? '0')}</td>
-                <td>${escapeHtml(line.contributable_salary ?? '0')}</td>
-                <td>${escapeHtml(line.employer_amount ?? '-')}</td>
-                <td>${escapeHtml(line.worker_amount ?? '-')}</td>
-                <td>${escapeHtml(line.total_contribution ?? '-')}</td>
+                <td>${escapeHtml(formatAmount(line.gross_salary))} CDF</td>
+                <td>${escapeHtml(formatAmount(line.contributable_salary))} CDF</td>
+                <td>${line.employer_amount === null ? '-' : `${escapeHtml(formatAmount(line.employer_amount))} CDF`}</td>
+                <td>${line.worker_amount === null ? '-' : `${escapeHtml(formatAmount(line.worker_amount))} CDF`}</td>
+                <td>${line.total_contribution === null ? '-' : `${escapeHtml(formatAmount(line.total_contribution))} CDF`}</td>
                 <td>${escapeHtml(line.worked_days ?? '-')}</td>
                 <td>${line.anomaly_flag ? escapeHtml(line.anomaly_reason || 'Oui') : '-'}</td>
                 <td>
@@ -841,26 +956,61 @@
         els.previewWorkerRate.textContent = '-';
         els.previewTotalRate.textContent = '-';
         els.previewAmountDue.textContent = '-';
+        els.previewDueDate.textContent = '-';
+        els.previewLateRate.textContent = '-';
+        els.previewLateDays.textContent = '-';
+        els.previewPenaltyAmount.textContent = '-';
+        els.previewTotalPayable.textContent = '-';
         els.globalContributionCheck.textContent = '';
         els.globalContributionCheck.classList.add('is-hidden');
     }
 
-    function updateContributionCheck() {
+    function updateLatePenaltyPreview() {
         const amountDue = Number(els.globalContributedAmount.dataset.amountDue);
+        const dailyRate = Number(els.globalContributedAmount.dataset.latePenaltyRate);
+        const dueDateValue = els.globalContributedAmount.dataset.dueDate;
+        const contributionDateValue = els.globalContributionDate.value;
+
+        if (!Number.isFinite(amountDue) || !Number.isFinite(dailyRate) || !dueDateValue || !contributionDateValue) {
+            els.previewLateDays.textContent = '-';
+            els.previewPenaltyAmount.textContent = '-';
+            els.previewTotalPayable.textContent = '-';
+            delete els.globalContributedAmount.dataset.totalPayable;
+            updateContributionCheck();
+            return;
+        }
+
+        const dueDate = new Date(`${dueDateValue}T00:00:00Z`);
+        const contributionDate = new Date(`${contributionDateValue}T00:00:00Z`);
+        const lateDays = contributionDate > dueDate
+            ? Math.floor((contributionDate - dueDate) / 86400000)
+            : 0;
+        const penaltyAmount = Math.round(amountDue * dailyRate / 100 * lateDays * 100) / 100;
+        const totalPayable = Math.round((amountDue + penaltyAmount) * 100) / 100;
+
+        els.previewLateDays.textContent = `${lateDays} jour${lateDays > 1 ? 's' : ''}`;
+        els.previewPenaltyAmount.textContent = `${formatAmount(penaltyAmount)} CDF`;
+        els.previewTotalPayable.textContent = `${formatAmount(totalPayable)} CDF`;
+        els.globalContributedAmount.dataset.totalPayable = String(totalPayable);
+        updateContributionCheck();
+    }
+
+    function updateContributionCheck() {
+        const totalPayable = Number(els.globalContributedAmount.dataset.totalPayable);
         const contributedAmount = Number(els.globalContributedAmount.value);
 
-        if (!Number.isFinite(amountDue) || els.globalContributedAmount.value === '' || !Number.isFinite(contributedAmount)) {
+        if (!Number.isFinite(totalPayable) || els.globalContributedAmount.value === '' || !Number.isFinite(contributedAmount)) {
             els.globalContributionCheck.classList.add('is-hidden');
             els.saveGlobalContribution.disabled = true;
             return;
         }
 
-        const difference = Math.round((contributedAmount - amountDue) * 100) / 100;
+        const difference = Math.round((contributedAmount - totalPayable) * 100) / 100;
         els.globalContributionCheck.classList.remove('is-hidden', 'ok', 'warning');
         els.globalContributionCheck.classList.add(Math.abs(difference) < 0.01 ? 'ok' : 'warning');
 
         if (Math.abs(difference) < 0.01) {
-            els.globalContributionCheck.textContent = 'Cotisation conforme au montant du.';
+            els.globalContributionCheck.textContent = 'Cotisation conforme au total exigible.';
         } else if (difference < 0) {
             els.globalContributionCheck.textContent = `Cotisation insuffisante. Ecart: ${formatAmount(Math.abs(difference))} CDF.`;
         } else {
@@ -877,7 +1027,9 @@
 
         clearGlobalPreview();
         els.globalContributedAmount.value = state.declaration.global_contribution_amount ?? '';
+        els.globalContributionDate.value = state.declaration.global_contribution_date ?? new Date().toISOString().slice(0, 10);
         delete els.globalContributedAmount.dataset.amountDue;
+        delete els.globalContributedAmount.dataset.totalPayable;
         els.saveGlobalContribution.disabled = true;
         setStatus(els.globalContributionStatus, 'Calcul en cours...');
         els.globalContributionDialog.showModal();
@@ -900,8 +1052,12 @@
             els.previewWorkerRate.textContent = `${formatAmount(calculation.worker_rate)} %`;
             els.previewTotalRate.textContent = `${formatAmount(calculation.total_rate)} %`;
             els.previewAmountDue.textContent = `${formatAmount(calculation.amount_due)} CDF`;
+            els.previewDueDate.textContent = calculation.due_date;
+            els.previewLateRate.textContent = `${formatAmount(calculation.late_penalty_daily_rate)} %`;
             els.globalContributedAmount.dataset.amountDue = String(calculation.amount_due);
-            updateContributionCheck();
+            els.globalContributedAmount.dataset.dueDate = calculation.due_date;
+            els.globalContributedAmount.dataset.latePenaltyRate = String(calculation.late_penalty_daily_rate);
+            updateLatePenaltyPreview();
             setStatus(els.globalContributionStatus, 'Saisissez le montant effectivement cotise. Un ecart sera signale sans bloquer l enregistrement.', 'ok');
         } catch (error) {
             setStatus(els.globalContributionStatus, error.message || 'Erreur de calcul.', 'error');
@@ -924,7 +1080,10 @@
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': csrfToken,
                 },
-                body: JSON.stringify({ contributed_amount: els.globalContributedAmount.value }),
+                body: JSON.stringify({
+                    contributed_amount: els.globalContributedAmount.value,
+                    contribution_date: els.globalContributionDate.value,
+                }),
             });
 
             if (!response.ok) {
@@ -1001,6 +1160,7 @@
     els.cancelGlobalContribution.addEventListener('click', () => els.globalContributionDialog.close());
     els.saveGlobalContribution.addEventListener('click', saveGlobalContribution);
     els.globalContributedAmount.addEventListener('input', updateContributionCheck);
+    els.globalContributionDate.addEventListener('input', updateLatePenaltyPreview);
     els.useDetailedEntryBtn.addEventListener('click', useDetailedEntry);
 
     els.linesTableBody.addEventListener('click', async (event) => {

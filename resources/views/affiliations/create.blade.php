@@ -675,7 +675,7 @@
                         @error('monthly_assimilated_workers_gross_income') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field">
-                        <label for="monthly_contribution_base_total">Total base mensuelle cotisable</label>
+                        <label for="monthly_contribution_base_total">Total base mensuelle cotisable (CDF)</label>
                         <input id="monthly_contribution_base_total" name="monthly_contribution_base_total" type="number" min="0" step="0.01" value="{{ old('monthly_contribution_base_total') }}">
                         @error('monthly_contribution_base_total') <span class="error">{{ $message }}</span> @enderror
                     </div>

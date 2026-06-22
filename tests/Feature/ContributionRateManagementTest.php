@@ -41,6 +41,7 @@ class ContributionRateManagementTest extends TestCase
             'effective_from' => '2026-01-01',
             'employer_rate' => 12,
             'worker_rate' => 4,
+            'late_penalty_daily_rate' => 0.5,
             'floor_amount' => 100,
             'ceiling_amount' => 5000,
             'is_active' => 1,
@@ -52,6 +53,7 @@ class ContributionRateManagementTest extends TestCase
             'regime_code' => 'GENERAL',
             'employer_rate' => '12.0000',
             'worker_rate' => '4.0000',
+            'late_penalty_daily_rate' => '0.5000',
             'is_active' => 1,
         ]);
 
@@ -60,6 +62,7 @@ class ContributionRateManagementTest extends TestCase
             'effective_from' => '2026-01-01',
             'employer_rate' => 13,
             'worker_rate' => 5,
+            'late_penalty_daily_rate' => 0.75,
             'floor_amount' => 100,
             'ceiling_amount' => 6000,
             'is_active' => 0,
@@ -70,6 +73,7 @@ class ContributionRateManagementTest extends TestCase
             'employer_rate' => '13.0000',
             'worker_rate' => '5.0000',
             'ceiling_amount' => '6000.00',
+            'late_penalty_daily_rate' => '0.7500',
             'is_active' => 0,
         ]);
     }

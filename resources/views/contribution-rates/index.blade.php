@@ -61,6 +61,7 @@
                     <th>Employeur</th>
                     <th>Travailleur</th>
                     <th>Total</th>
+                    <th>Majoration / jour</th>
                     <th>Plancher</th>
                     <th>Plafond</th>
                     <th>Statut</th>
@@ -75,8 +76,9 @@
                         <td>{{ number_format((float) $rate->employer_rate, 2, ',', ' ') }} %</td>
                         <td>{{ number_format((float) $rate->worker_rate, 2, ',', ' ') }} %</td>
                         <td><strong>{{ number_format((float) $rate->employer_rate + (float) $rate->worker_rate, 2, ',', ' ') }} %</strong></td>
-                        <td>{{ $rate->floor_amount ?? '-' }}</td>
-                        <td>{{ $rate->ceiling_amount ?? '-' }}</td>
+                        <td>{{ number_format((float) $rate->late_penalty_daily_rate, 2, ',', ' ') }} %</td>
+                        <td>{{ $rate->floor_amount !== null ? number_format((float) $rate->floor_amount, 2, ',', ' ').' CDF' : '-' }}</td>
+                        <td>{{ $rate->ceiling_amount !== null ? number_format((float) $rate->ceiling_amount, 2, ',', ' ').' CDF' : '-' }}</td>
                         <td><span class="badge {{ $rate->is_active ? 'badge-active' : 'badge-inactive' }}">{{ $rate->is_active ? 'ACTIVE' : 'INACTIVE' }}</span></td>
                         <td>
                             <button
@@ -89,6 +91,7 @@
                                 data-effective-to="{{ $rate->effective_to?->format('Y-m-d') }}"
                                 data-employer-rate="{{ $rate->employer_rate }}"
                                 data-worker-rate="{{ $rate->worker_rate }}"
+                                data-late-penalty-daily-rate="{{ $rate->late_penalty_daily_rate }}"
                                 data-floor-amount="{{ $rate->floor_amount }}"
                                 data-ceiling-amount="{{ $rate->ceiling_amount }}"
                                 data-is-active="{{ $rate->is_active ? '1' : '0' }}"
@@ -96,7 +99,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td class="empty" colspan="9">Aucune modalite configuree.</td></tr>
+                    <tr><td class="empty" colspan="10">Aucune modalite configuree.</td></tr>
                 @endforelse
                 </tbody>
             </table>
@@ -157,11 +160,15 @@
                     <input class="control" id="worker_rate" name="worker_rate" type="number" min="0" max="100" step="0.0001" value="{{ old('worker_rate') }}" required>
                 </div>
                 <div class="field">
-                    <label for="floor_amount">Plancher cotisable</label>
+                    <label for="late_penalty_daily_rate">Majoration de retard par jour (%)</label>
+                    <input class="control" id="late_penalty_daily_rate" name="late_penalty_daily_rate" type="number" min="0" max="100" step="0.0001" value="{{ old('late_penalty_daily_rate', 0.5) }}" required>
+                </div>
+                <div class="field">
+                    <label for="floor_amount">Plancher cotisable (CDF)</label>
                     <input class="control" id="floor_amount" name="floor_amount" type="number" min="0" step="0.01" value="{{ old('floor_amount') }}">
                 </div>
                 <div class="field">
-                    <label for="ceiling_amount">Plafond cotisable</label>
+                    <label for="ceiling_amount">Plafond cotisable (CDF)</label>
                     <input class="control" id="ceiling_amount" name="ceiling_amount" type="number" min="0" step="0.01" value="{{ old('ceiling_amount') }}">
                 </div>
                 <label class="switch-field">
@@ -193,6 +200,7 @@
         effective_to: 'effectiveTo',
         employer_rate: 'employerRate',
         worker_rate: 'workerRate',
+        late_penalty_daily_rate: 'latePenaltyDailyRate',
         floor_amount: 'floorAmount',
         ceiling_amount: 'ceilingAmount',
     };
@@ -203,6 +211,7 @@
         methodField.value = 'POST';
         rateIdField.value = '';
         document.getElementById('regime_code').value = 'GENERAL';
+        document.getElementById('late_penalty_daily_rate').value = '0.5';
         document.getElementById('is_active').checked = true;
         formTitle.textContent = 'Nouvelle modalite';
         submitButton.textContent = 'Creer la modalite';

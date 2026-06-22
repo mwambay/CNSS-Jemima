@@ -17,6 +17,7 @@ class UpsertContributionRateRequest extends FormRequest
     {
         $this->merge([
             'regime_code' => strtoupper(trim((string) $this->input('regime_code'))),
+            'late_penalty_daily_rate' => $this->input('late_penalty_daily_rate', 0.5),
             'is_active' => $this->boolean('is_active'),
         ]);
     }
@@ -29,6 +30,7 @@ class UpsertContributionRateRequest extends FormRequest
             'effective_to' => ['nullable', 'date', 'after_or_equal:effective_from'],
             'employer_rate' => ['required', 'numeric', 'min:0', 'max:100'],
             'worker_rate' => ['required', 'numeric', 'min:0', 'max:100'],
+            'late_penalty_daily_rate' => ['required', 'numeric', 'min:0', 'max:100'],
             'floor_amount' => ['nullable', 'numeric', 'min:0'],
             'ceiling_amount' => ['nullable', 'numeric', 'min:0'],
             'is_active' => ['required', 'boolean'],

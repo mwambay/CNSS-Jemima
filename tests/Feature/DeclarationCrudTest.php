@@ -50,12 +50,14 @@ class DeclarationCrudTest extends TestCase
         $response
             ->assertCreated()
             ->assertJsonPath('employer_id', $employer->id)
-            ->assertJsonPath('status', 'DRAFT');
+            ->assertJsonPath('status', 'DRAFT')
+            ->assertJsonPath('due_date', '2026-05-15');
 
         $this->assertDatabaseHas('declarations', [
             'employer_id' => $employer->id,
             'period_year' => 2026,
             'period_month' => 4,
+            'due_date' => '2026-05-15 00:00:00',
             'status' => 'DRAFT',
         ]);
     }
@@ -297,8 +299,8 @@ class DeclarationCrudTest extends TestCase
         $declaration = Declaration::query()->create([
             'employer_id' => $employer->id,
             'period_year' => 2026,
-            'period_month' => 9,
-            'due_date' => '2026-09-30',
+            'period_month' => 4,
+            'due_date' => '2026-05-15',
             'status' => 'DRAFT',
         ]);
 
@@ -308,11 +310,14 @@ class DeclarationCrudTest extends TestCase
             ->assertJsonPath('calculation.worker_count', 2)
             ->assertJsonPath('calculation.salary_envelope', 750000)
             ->assertJsonPath('calculation.total_rate', 18)
-            ->assertJsonPath('calculation.amount_due', 135000);
+            ->assertJsonPath('calculation.amount_due', 135000)
+            ->assertJsonPath('calculation.due_date', '2026-05-15')
+            ->assertJsonPath('calculation.late_penalty_daily_rate', 0.5);
 
         $this->actingAs($admin)
             ->postJson('/api/declarations/'.$declaration->id.'/global-contribution', [
                 'contributed_amount' => 120000,
+                'contribution_date' => '2026-05-20',
             ])
             ->assertOk()
             ->assertJsonPath('contribution_entry_mode', 'GLOBAL')
@@ -321,8 +326,13 @@ class DeclarationCrudTest extends TestCase
             ->assertJsonPath('global_worker_rate', '6.0000')
             ->assertJsonPath('global_worker_count', 2)
             ->assertJsonPath('global_amount_due', '135000.00')
+            ->assertJsonPath('global_contribution_date', '2026-05-20')
+            ->assertJsonPath('global_late_days', 5)
+            ->assertJsonPath('global_late_penalty_rate', '0.5000')
+            ->assertJsonPath('global_late_penalty_amount', '3375.00')
+            ->assertJsonPath('global_total_payable', '138375.00')
             ->assertJsonPath('global_contribution_amount', '120000.00')
-            ->assertJsonPath('global_contribution_difference', -15000)
+            ->assertJsonPath('global_contribution_difference', -18375)
             ->assertJsonPath('global_contribution_status', 'INSUFFISANT')
             ->assertJsonPath('total_declared_contribution', '120000.00')
             ->assertJsonCount(0, 'lines');
@@ -342,16 +352,20 @@ class DeclarationCrudTest extends TestCase
         $declaration = Declaration::query()->create([
             'employer_id' => $employer->id,
             'period_year' => 2026,
-            'period_month' => 10,
-            'due_date' => '2026-10-31',
+            'period_month' => 4,
+            'due_date' => '2026-05-15',
             'status' => 'DRAFT',
         ]);
 
         $this->actingAs($admin)
             ->postJson('/api/declarations/'.$declaration->id.'/global-contribution', [
                 'contributed_amount' => 1000,
+                'contribution_date' => '2026-05-15',
             ])
-            ->assertOk();
+            ->assertOk()
+            ->assertJsonPath('global_late_days', 0)
+            ->assertJsonPath('global_late_penalty_amount', '0.00')
+            ->assertJsonPath('global_total_payable', '160.00');
 
         $this->actingAs($admin)
             ->postJson('/api/declarations/'.$declaration->id.'/lines', [
@@ -367,6 +381,9 @@ class DeclarationCrudTest extends TestCase
             ->assertJsonPath('contribution_entry_mode', 'DETAILED')
             ->assertJsonPath('global_contribution_amount', null)
             ->assertJsonPath('global_amount_due', null)
+            ->assertJsonPath('global_contribution_date', null)
+            ->assertJsonPath('global_late_penalty_amount', null)
+            ->assertJsonPath('global_total_payable', null)
             ->assertJsonPath('total_declared_contribution', '0.00');
     }
 
@@ -379,8 +396,8 @@ class DeclarationCrudTest extends TestCase
         $declaration = Declaration::query()->create([
             'employer_id' => $employer->id,
             'period_year' => 2026,
-            'period_month' => 10,
-            'due_date' => '2026-10-31',
+            'period_month' => 4,
+            'due_date' => '2026-05-15',
             'status' => 'DRAFT',
         ]);
 
@@ -392,6 +409,7 @@ class DeclarationCrudTest extends TestCase
         $this->actingAs($admin)
             ->postJson('/api/declarations/'.$declaration->id.'/global-contribution', [
                 'contributed_amount' => 1000,
+                'contribution_date' => '2026-05-15',
             ])
             ->assertStatus(422)
             ->assertJsonValidationErrors('base_salary');

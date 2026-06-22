@@ -55,7 +55,13 @@
             ] as $name => $label)
                 <div class="item">
                     <p class="label">{{ $label }}</p>
-                    <p class="value">{{ $affiliationRequest->{$name} ?? '-' }}</p>
+                    <p class="value">
+                        @if($name === 'monthly_contribution_base_total' && $affiliationRequest->{$name} !== null)
+                            {{ number_format((float) $affiliationRequest->{$name}, 2, ',', ' ') }} CDF
+                        @else
+                            {{ $affiliationRequest->{$name} ?? '-' }}
+                        @endif
+                    </p>
                 </div>
             @endforeach
             <div class="item full">

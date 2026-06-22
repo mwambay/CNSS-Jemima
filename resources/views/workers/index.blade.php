@@ -303,7 +303,7 @@
                     </select>
                 </div>
                 <div class="field full">
-                    <label for="base_salary">Salaire de base</label>
+                    <label for="base_salary">Salaire de base (CDF)</label>
                     <input class="control" id="base_salary" name="base_salary" type="number" min="0" step="0.01">
                 </div>
             </div>

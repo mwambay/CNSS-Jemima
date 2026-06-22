@@ -56,8 +56,9 @@ class DeclarationController extends Controller
     {
         $data = $request->validated();
 
-        $dueDate = $data['due_date'] ?? Carbon::create($data['period_year'], $data['period_month'], 1)
-            ->endOfMonth()
+        $dueDate = Carbon::create($data['period_year'], $data['period_month'], 1)
+            ->addMonth()
+            ->day(15)
             ->format('Y-m-d');
 
         $declaration = Declaration::query()->create([
@@ -269,15 +270,24 @@ class DeclarationController extends Controller
 
         $data = $request->validate([
             'contributed_amount' => ['required', 'numeric', 'min:0'],
+            'contribution_date' => ['required', 'date', 'before_or_equal:today'],
         ]);
 
-        $calculation = $this->contributionCalculationService->previewGlobalContribution($declaration);
+        $calculation = $this->contributionCalculationService->calculateGlobalContribution(
+            $declaration,
+            $data['contribution_date']
+        );
         $contributedAmount = round((float) $data['contributed_amount'], 2);
 
         $declaration->update([
             'contribution_entry_mode' => 'GLOBAL',
             'global_contribution_amount' => $contributedAmount,
             'global_amount_due' => $calculation['amount_due'],
+            'global_contribution_date' => $calculation['contribution_date'],
+            'global_late_days' => $calculation['late_days'],
+            'global_late_penalty_rate' => $calculation['late_penalty_daily_rate'],
+            'global_late_penalty_amount' => $calculation['late_penalty_amount'],
+            'global_total_payable' => $calculation['total_payable'],
             'global_salary_envelope' => $calculation['salary_envelope'],
             'global_employer_rate' => $calculation['employer_rate'],
             'global_worker_rate' => $calculation['worker_rate'],
@@ -305,6 +315,11 @@ class DeclarationController extends Controller
                 'contribution_entry_mode' => 'DETAILED',
                 'global_contribution_amount' => null,
                 'global_amount_due' => null,
+                'global_contribution_date' => null,
+                'global_late_days' => null,
+                'global_late_penalty_rate' => null,
+                'global_late_penalty_amount' => null,
+                'global_total_payable' => null,
                 'global_salary_envelope' => null,
                 'global_employer_rate' => null,
                 'global_worker_rate' => null,
@@ -361,6 +376,11 @@ class DeclarationController extends Controller
             'contribution_entry_mode' => $declaration->contribution_entry_mode ?? 'DETAILED',
             'global_contribution_amount' => $declaration->global_contribution_amount,
             'global_amount_due' => $declaration->global_amount_due,
+            'global_contribution_date' => $declaration->global_contribution_date?->format('Y-m-d'),
+            'global_late_days' => $declaration->global_late_days,
+            'global_late_penalty_rate' => $declaration->global_late_penalty_rate,
+            'global_late_penalty_amount' => $declaration->global_late_penalty_amount,
+            'global_total_payable' => $declaration->global_total_payable,
             'global_contribution_difference' => $this->globalContributionDifference($declaration),
             'global_contribution_status' => $this->globalContributionStatus($declaration),
             'global_salary_envelope' => $declaration->global_salary_envelope,
@@ -410,12 +430,14 @@ class DeclarationController extends Controller
 
     private function globalContributionDifference(Declaration $declaration): ?float
     {
-        if ($declaration->global_amount_due === null || $declaration->global_contribution_amount === null) {
+        $totalPayable = $declaration->global_total_payable ?? $declaration->global_amount_due;
+
+        if ($totalPayable === null || $declaration->global_contribution_amount === null) {
             return null;
         }
 
         return round(
-            (float) $declaration->global_contribution_amount - (float) $declaration->global_amount_due,
+            (float) $declaration->global_contribution_amount - (float) $totalPayable,
             2
         );
     }

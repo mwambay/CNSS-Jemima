@@ -27,6 +27,78 @@
         font-weight: 700;
     }
 
+    .overview-panel {
+        background: #fff;
+        border: 1px solid #dfe5ec;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(6, 52, 109, .08);
+        padding: 1.15rem;
+    }
+
+    .overview-panel h2 {
+        margin: 0 0 1rem;
+        color: #101828;
+        font-size: 1.05rem;
+    }
+
+    .overview-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        border: 1px solid #dfe5ec;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .overview-item {
+        min-width: 0;
+        padding: 1rem 1.15rem;
+        background: #fff;
+        border-right: 1px solid #dfe5ec;
+    }
+
+    .overview-item:last-child {
+        border-right: 0;
+    }
+
+    .overview-label {
+        display: block;
+        margin-bottom: .55rem;
+        color: #667085;
+        font-size: .82rem;
+        font-weight: 600;
+    }
+
+    .overview-value-row {
+        display: flex;
+        align-items: center;
+        gap: .55rem;
+        flex-wrap: wrap;
+    }
+
+    .overview-value {
+        color: #062b5c;
+        font-size: 1.65rem;
+        line-height: 1.15;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+    }
+
+    .overview-note {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: .22rem .5rem;
+        color: #006f66;
+        background: #e4f7f3;
+        font-size: .72rem;
+        font-weight: 800;
+    }
+
+    .overview-note.warning {
+        color: #b54708;
+        background: #fffaeb;
+    }
+
     .toolbar {
         display: flex;
         align-items: center;
@@ -132,6 +204,39 @@
         flex-wrap: wrap;
     }
 
+    .filter-bar {
+        display: grid;
+        grid-template-columns: minmax(220px, 1.6fr) repeat(3, minmax(130px, .7fr)) auto;
+        align-items: end;
+        gap: .65rem;
+        margin: .9rem 0;
+        padding: .8rem;
+        border: 1px solid #e4e7ec;
+        border-radius: 8px;
+        background: #f8fafb;
+    }
+
+    .filter-field {
+        display: grid;
+        gap: .3rem;
+        min-width: 0;
+    }
+
+    .filter-field label {
+        color: #667085;
+        font-size: .72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .filter-field .control {
+        background: #fff;
+    }
+
+    .filter-bar > .btn {
+        min-height: 42px;
+    }
+
     .table-wrap {
         overflow: auto;
         border: 1px solid #e4e7ec;
@@ -235,6 +340,50 @@
         .grid {
             grid-template-columns: 1fr;
         }
+
+        .overview-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .overview-item:nth-child(2) {
+            border-right: 0;
+        }
+
+        .overview-item:nth-child(-n + 2) {
+            border-bottom: 1px solid #dfe5ec;
+        }
+
+        .filter-bar {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .filter-field-search {
+            grid-column: 1 / -1;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .overview-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .overview-item,
+        .overview-item:nth-child(2) {
+            border-right: 0;
+            border-bottom: 1px solid #dfe5ec;
+        }
+
+        .overview-item:last-child {
+            border-bottom: 0;
+        }
+
+        .filter-bar {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-field-search {
+            grid-column: auto;
+        }
     }
 </style>
 @endpush
@@ -246,6 +395,38 @@
             <div class="notice">Acces restreint: vous n'avez pas les droits ADMIN pour gerer les declarations.</div>
         </article>
     @else
+        <section class="overview-panel" aria-labelledby="overview-title">
+            <h2 id="overview-title">Vue d'ensemble</h2>
+            <div class="overview-grid">
+                <div class="overview-item">
+                    <span class="overview-label">Total des declarations</span>
+                    <div class="overview-value-row">
+                        <strong class="overview-value" id="overview-declarations">0</strong>
+                        <span class="overview-note" id="overview-validated">0 validee</span>
+                    </div>
+                </div>
+                <div class="overview-item">
+                    <span class="overview-label">Sommes cotisees</span>
+                    <div class="overview-value-row">
+                        <strong class="overview-value" id="overview-contributed">0,00 CDF</strong>
+                    </div>
+                </div>
+                <div class="overview-item">
+                    <span class="overview-label">Total exigible</span>
+                    <div class="overview-value-row">
+                        <strong class="overview-value" id="overview-payable">0,00 CDF</strong>
+                    </div>
+                </div>
+                <div class="overview-item">
+                    <span class="overview-label">Majorations de retard</span>
+                    <div class="overview-value-row">
+                        <strong class="overview-value" id="overview-penalties">0,00 CDF</strong>
+                        <span class="overview-note warning" id="overview-late-count">0 retard</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <article class="panel">
             <div class="toolbar">
                 <h2>Liste des declarations</h2>
@@ -270,8 +451,8 @@
                         <input class="control" id="period_month" name="period_month" type="number" min="1" max="12" required>
                     </div>
                     <div class="field">
-                        <label for="due_date">Date echeance</label>
-                        <input class="control" id="due_date" name="due_date" type="date">
+                        <label for="due_date">Echeance legale (15 du mois suivant)</label>
+                        <input class="control" id="due_date" name="due_date" type="date" readonly>
                     </div>
                 </div>
                 <div class="actions" style="margin-top:.8rem;">
@@ -279,6 +460,48 @@
                     <button id="cancel-declaration-form-btn" class="btn btn-outline" type="button">Annuler</button>
                 </div>
             </form>
+
+            <div class="filter-bar" aria-label="Filtres des declarations">
+                <div class="filter-field filter-field-search">
+                    <label for="declaration-search">Recherche</label>
+                    <input class="control" id="declaration-search" type="search" placeholder="Employeur ou periode (ex. 04/2026)">
+                </div>
+                <div class="filter-field">
+                    <label for="declaration-status-filter">Statut</label>
+                    <select class="control" id="declaration-status-filter">
+                        <option value="">Tous les statuts</option>
+                        <option value="DRAFT">Brouillon</option>
+                        <option value="SUBMITTED">Soumise</option>
+                        <option value="VALIDATED">Validee</option>
+                        <option value="REJECTED">Rejetee</option>
+                    </select>
+                </div>
+                <div class="filter-field">
+                    <label for="declaration-year-filter">Annee</label>
+                    <select class="control" id="declaration-year-filter">
+                        <option value="">Toutes les annees</option>
+                    </select>
+                </div>
+                <div class="filter-field">
+                    <label for="declaration-month-filter">Mois</label>
+                    <select class="control" id="declaration-month-filter">
+                        <option value="">Tous les mois</option>
+                        <option value="1">Janvier</option>
+                        <option value="2">Fevrier</option>
+                        <option value="3">Mars</option>
+                        <option value="4">Avril</option>
+                        <option value="5">Mai</option>
+                        <option value="6">Juin</option>
+                        <option value="7">Juillet</option>
+                        <option value="8">Aout</option>
+                        <option value="9">Septembre</option>
+                        <option value="10">Octobre</option>
+                        <option value="11">Novembre</option>
+                        <option value="12">Decembre</option>
+                    </select>
+                </div>
+                <button class="btn btn-outline" id="reset-declaration-filters" type="button">Reinitialiser</button>
+            </div>
 
             <p id="declaration-status" class="status-text"></p>
 
@@ -312,6 +535,7 @@
 
     const state = {
         declarations: [],
+        filteredDeclarations: [],
     };
 
     const els = {
@@ -323,6 +547,17 @@
         declarationStatus: document.getElementById('declaration-status'),
         declarationsTableBody: document.getElementById('declarations-table-body'),
         employerSelect: document.getElementById('employer_id'),
+        overviewDeclarations: document.getElementById('overview-declarations'),
+        overviewValidated: document.getElementById('overview-validated'),
+        overviewContributed: document.getElementById('overview-contributed'),
+        overviewPayable: document.getElementById('overview-payable'),
+        overviewPenalties: document.getElementById('overview-penalties'),
+        overviewLateCount: document.getElementById('overview-late-count'),
+        searchInput: document.getElementById('declaration-search'),
+        statusFilter: document.getElementById('declaration-status-filter'),
+        yearFilter: document.getElementById('declaration-year-filter'),
+        monthFilter: document.getElementById('declaration-month-filter'),
+        resetFiltersBtn: document.getElementById('reset-declaration-filters'),
     };
 
     function getDeclarationShowUrl(id) {
@@ -339,6 +574,20 @@
         els.declarationForm.reset();
         document.getElementById('period_year').value = String(now.getFullYear());
         document.getElementById('period_month').value = String(now.getMonth() + 1);
+        updateDueDate();
+    }
+
+    function updateDueDate() {
+        const year = Number(document.getElementById('period_year').value);
+        const month = Number(document.getElementById('period_month').value);
+
+        if (!year || month < 1 || month > 12) {
+            document.getElementById('due_date').value = '';
+            return;
+        }
+
+        const dueDate = new Date(Date.UTC(year, month, 15));
+        document.getElementById('due_date').value = dueDate.toISOString().slice(0, 10);
     }
 
     function toggleDeclarationForm(forceVisible = null) {
@@ -355,22 +604,58 @@
         return 'badge badge-draft';
     }
 
+    function formatCurrency(value) {
+        return `${new Intl.NumberFormat('fr-FR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(Number(value || 0))} CDF`;
+    }
+
+    function renderOverview() {
+        const declarations = state.declarations;
+        const validatedCount = declarations.filter((item) => item.status === 'VALIDATED').length;
+        const lateCount = declarations.filter((item) => Number(item.global_late_days || 0) > 0).length;
+        const totalContributed = declarations.reduce(
+            (total, item) => total + Number(item.total_declared_contribution || 0),
+            0
+        );
+        const totalPayable = declarations.reduce(
+            (total, item) => total + Number(item.global_total_payable ?? item.total_declared_contribution ?? 0),
+            0
+        );
+        const totalPenalties = declarations.reduce(
+            (total, item) => total + Number(item.global_late_penalty_amount || 0),
+            0
+        );
+
+        els.overviewDeclarations.textContent = String(declarations.length);
+        els.overviewValidated.textContent = `${validatedCount} validee${validatedCount > 1 ? 's' : ''}`;
+        els.overviewContributed.textContent = formatCurrency(totalContributed);
+        els.overviewPayable.textContent = formatCurrency(totalPayable);
+        els.overviewPenalties.textContent = formatCurrency(totalPenalties);
+        els.overviewLateCount.textContent = `${lateCount} retard${lateCount > 1 ? 's' : ''}`;
+    }
+
     function renderDeclarations() {
-        const count = state.declarations.length;
-        els.declarationCount.textContent = `${count} declaration${count > 1 ? 's' : ''}`;
+        const count = state.filteredDeclarations.length;
+        const totalCount = state.declarations.length;
+        els.declarationCount.textContent = count === totalCount
+            ? `${count} declaration${count > 1 ? 's' : ''}`
+            : `${count} resultat${count > 1 ? 's' : ''} sur ${totalCount}`;
+        renderOverview();
 
         if (count === 0) {
             els.declarationsTableBody.innerHTML = '<tr><td colspan="7" class="empty">Aucune declaration trouvee.</td></tr>';
             return;
         }
 
-        els.declarationsTableBody.innerHTML = state.declarations.map((item) => `
+        els.declarationsTableBody.innerHTML = state.filteredDeclarations.map((item) => `
             <tr>
                 <td>${escapeHtml(item.employer_name || '-')}</td>
                 <td>${escapeHtml(String(item.period_month).padStart(2, '0'))}/${escapeHtml(String(item.period_year))}</td>
                 <td><span class="${statusBadgeClass(item.status)}">${escapeHtml(item.status)}</span></td>
-                <td>${escapeHtml(item.total_declared_salary ?? '0')}</td>
-                <td>${escapeHtml(item.total_declared_contribution ?? '0')}</td>
+                <td>${escapeHtml(formatCurrency(item.total_declared_salary))}</td>
+                <td>${escapeHtml(formatCurrency(item.total_declared_contribution))}</td>
                 <td>${escapeHtml(item.lines_count ?? 0)}</td>
                 <td>
                     <div class="actions">
@@ -380,6 +665,44 @@
                 </td>
             </tr>
         `).join('');
+    }
+
+    function populateYearFilter() {
+        const selectedYear = els.yearFilter.value;
+        const years = [...new Set(state.declarations.map((item) => Number(item.period_year)))]
+            .filter(Boolean)
+            .sort((a, b) => b - a);
+
+        els.yearFilter.innerHTML = '<option value="">Toutes les annees</option>'
+            + years.map((year) => `<option value="${year}">${year}</option>`).join('');
+        els.yearFilter.value = years.includes(Number(selectedYear)) ? selectedYear : '';
+    }
+
+    function applyFilters() {
+        const search = els.searchInput.value.trim().toLocaleLowerCase('fr');
+        const status = els.statusFilter.value;
+        const year = Number(els.yearFilter.value || 0);
+        const month = Number(els.monthFilter.value || 0);
+
+        state.filteredDeclarations = state.declarations.filter((item) => {
+            const period = `${String(item.period_month).padStart(2, '0')}/${item.period_year}`;
+            const searchableText = `${item.employer_name || ''} ${period}`.toLocaleLowerCase('fr');
+
+            return (!search || searchableText.includes(search))
+                && (!status || item.status === status)
+                && (!year || Number(item.period_year) === year)
+                && (!month || Number(item.period_month) === month);
+        });
+
+        renderDeclarations();
+    }
+
+    function resetFilters() {
+        els.searchInput.value = '';
+        els.statusFilter.value = '';
+        els.yearFilter.value = '';
+        els.monthFilter.value = '';
+        applyFilters();
     }
 
     async function loadDeclarations() {
@@ -395,7 +718,9 @@
             }
 
             state.declarations = await response.json();
-            renderDeclarations();
+            state.filteredDeclarations = [...state.declarations];
+            populateYearFilter();
+            applyFilters();
             setDeclarationStatus('Declarations chargees.', 'ok');
         } catch (error) {
             setDeclarationStatus(error.message || 'Erreur de chargement.', 'error');
@@ -487,6 +812,13 @@
     els.toggleDeclarationFormBtn.addEventListener('click', () => toggleDeclarationForm());
     els.cancelDeclarationFormBtn.addEventListener('click', () => toggleDeclarationForm(false));
     els.declarationForm.addEventListener('submit', createDeclaration);
+    document.getElementById('period_year').addEventListener('input', updateDueDate);
+    document.getElementById('period_month').addEventListener('input', updateDueDate);
+    els.searchInput.addEventListener('input', applyFilters);
+    els.statusFilter.addEventListener('change', applyFilters);
+    els.yearFilter.addEventListener('change', applyFilters);
+    els.monthFilter.addEventListener('change', applyFilters);
+    els.resetFiltersBtn.addEventListener('click', resetFilters);
 
     els.declarationsTableBody.addEventListener('click', async (event) => {
         const target = event.target;

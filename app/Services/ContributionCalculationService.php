@@ -69,6 +69,28 @@ class ContributionCalculationService
             'worker_rate' => $workerRate,
             'total_rate' => $totalRate,
             'amount_due' => $amountDue,
+            'due_date' => $this->statutoryDueDate($declaration)->toDateString(),
+            'late_penalty_daily_rate' => (float) $rate->late_penalty_daily_rate,
+        ];
+    }
+
+    public function calculateGlobalContribution(Declaration $declaration, string $contributionDate): array
+    {
+        $calculation = $this->previewGlobalContribution($declaration);
+        $dueDate = Carbon::parse($calculation['due_date'])->startOfDay();
+        $paidAt = Carbon::parse($contributionDate)->startOfDay();
+        $lateDays = $paidAt->greaterThan($dueDate) ? (int) $dueDate->diffInDays($paidAt) : 0;
+        $penaltyAmount = round(
+            $calculation['amount_due'] * $calculation['late_penalty_daily_rate'] / 100 * $lateDays,
+            2
+        );
+
+        return [
+            ...$calculation,
+            'contribution_date' => $paidAt->toDateString(),
+            'late_days' => $lateDays,
+            'late_penalty_amount' => $penaltyAmount,
+            'total_payable' => round($calculation['amount_due'] + $penaltyAmount, 2),
         ];
     }
 
@@ -148,6 +170,14 @@ class ContributionCalculationService
         }
 
         return round($bounded, 2);
+    }
+
+    private function statutoryDueDate(Declaration $declaration): Carbon
+    {
+        return Carbon::create($declaration->period_year, $declaration->period_month, 1)
+            ->addMonth()
+            ->day(15)
+            ->startOfDay();
     }
 
 }

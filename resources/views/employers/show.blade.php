@@ -401,7 +401,7 @@
                             </td>
                             <td>{{ $worker['contract_type'] ?? '-' }}</td>
                             <td>{{ $worker['start_date'] ?? '-' }}</td>
-                            <td>{{ $worker['base_salary'] ?? '-' }}</td>
+                            <td>{{ isset($worker['base_salary']) ? number_format((float) $worker['base_salary'], 2, ',', ' ').' CDF' : '-' }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -451,7 +451,7 @@
                                 </select>
                             </div>
                             <div class="field">
-                                <label for="base_salary">Salaire de base</label>
+                                <label for="base_salary">Salaire de base (CDF)</label>
                                 <input class="control" id="base_salary" name="base_salary" type="number" min="0" step="0.01">
                             </div>
                             <div class="field">
