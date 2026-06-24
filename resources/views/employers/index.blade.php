@@ -290,7 +290,7 @@
                     </div>
                     <div class="field">
                         <label for="sector">Secteur</label>
-                        <input class="control" id="sector" name="sector" maxlength="100">
+                        <input class="control" id="sector" name="sector" maxlength="200">
                     </div>
                     <div class="field">
                         <label for="status">Statut</label>

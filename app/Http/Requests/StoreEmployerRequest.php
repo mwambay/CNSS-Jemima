@@ -28,7 +28,7 @@ class StoreEmployerRequest extends FormRequest
             'tax_id' => ['nullable', 'string', 'max:50', 'unique:employers,tax_id'],
             'registration_number' => ['nullable', 'string', 'max:50'],
             'legal_form' => ['nullable', 'string', 'max:50'],
-            'sector' => ['nullable', 'string', 'max:100'],
+            'sector' => ['nullable', 'string', 'max:200'],
             'status' => ['nullable', Rule::in(['ACTIVE', 'SUSPENDED', 'CLOSED'])],
             'verification_status' => ['nullable', Rule::in(['PENDING', 'VERIFIED', 'REJECTED'])],
             'phone' => ['nullable', 'string', 'max:30'],

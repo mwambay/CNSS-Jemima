@@ -7,6 +7,7 @@ use App\Http\Requests\RejectAffiliationRequest;
 use App\Http\Requests\StoreAffiliationRequest;
 use App\Models\AffiliationRequest;
 use App\Models\Employer;
+use App\Services\MailDispatchService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -15,6 +16,10 @@ use Illuminate\View\View;
 
 class AffiliationRequestController extends Controller
 {
+    public function __construct(private readonly MailDispatchService $mailDispatchService)
+    {
+    }
+
     public function create(): View
     {
         return view('affiliations.create');
@@ -89,9 +94,15 @@ class AffiliationRequestController extends Controller
             ]);
         });
 
+        $affiliationRequest->refresh()->load('employer');
+        $mailSent = $this->mailDispatchService->sendAffiliationDecision($affiliationRequest);
+
         return redirect()
             ->route('affiliations.show', $affiliationRequest)
-            ->with('status', 'Demande approuvee et employeur cree.');
+            ->with('status', $mailSent
+                ? 'Demande approuvee, employeur cree et mail envoye.'
+                : 'Demande approuvee et employeur cree. Mail non envoye: verifiez l email ou la configuration Gmail.'
+            );
     }
 
     public function reject(RejectAffiliationRequest $request, AffiliationRequest $affiliationRequest): RedirectResponse
@@ -109,9 +120,15 @@ class AffiliationRequestController extends Controller
             'rejection_reason' => $request->validated('rejection_reason'),
         ]);
 
+        $affiliationRequest->refresh();
+        $mailSent = $this->mailDispatchService->sendAffiliationDecision($affiliationRequest);
+
         return redirect()
             ->route('affiliations.show', $affiliationRequest)
-            ->with('status', 'Demande rejetee.');
+            ->with('status', $mailSent
+                ? 'Demande rejetee et mail envoye.'
+                : 'Demande rejetee. Mail non envoye: verifiez l email ou la configuration Gmail.'
+            );
     }
 
     private function generateTrackingNumber(): string

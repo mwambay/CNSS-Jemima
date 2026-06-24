@@ -79,6 +79,34 @@ class AffiliationRequestTest extends TestCase
         ]);
     }
 
+    public function test_affiliation_approval_accepts_long_primary_activity(): void
+    {
+        $agent = $this->createUserWithRole('AGENT_SES');
+        $activity = str_repeat('Commerce international et prestations logistiques ', 3);
+        $affiliationRequest = AffiliationRequest::query()->create([
+            'tracking_number' => 'AFF-20260616-LONG01',
+            'status' => 'PENDING',
+            'legal_name' => 'Entreprise Activite Longue',
+            'phone' => '+243990000004',
+            'email' => 'longue@gmail.com',
+            'legal_form' => 'AUTRE',
+            'primary_activity' => $activity,
+        ]);
+
+        $response = $this
+            ->actingAs($agent)
+            ->post(route('affiliations.approve', $affiliationRequest), [
+                'affiliation_number' => 'CNSS-LONG-001',
+            ]);
+
+        $response->assertRedirect(route('affiliations.show', $affiliationRequest));
+
+        $this->assertDatabaseHas('employers', [
+            'affiliation_number' => 'CNSS-LONG-001',
+            'sector' => $activity,
+        ]);
+    }
+
     public function test_admin_or_agent_role_is_required_for_back_office(): void
     {
         $user = $this->createUser('viewer');

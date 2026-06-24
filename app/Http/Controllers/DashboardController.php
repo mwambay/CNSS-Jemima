@@ -47,7 +47,7 @@ class DashboardController extends Controller
                 ->where('contribution_entry_mode', 'GLOBAL')
                 ->whereNotNull('global_amount_due')
                 ->whereNotNull('global_contribution_amount')
-                ->whereColumn('global_amount_due', '<>', 'global_contribution_amount')
+                ->whereRaw('ABS(global_contribution_amount - COALESCE(global_total_payable, global_amount_due)) >= 0.01')
                 ->count(),
             'open_fraud_alerts' => FraudAlert::query()->where('status', 'OPEN')->count(),
             'missing_salaries' => Employment::query()
@@ -106,18 +106,19 @@ class DashboardController extends Controller
             ->where('contribution_entry_mode', 'GLOBAL')
             ->whereNotNull('global_amount_due')
             ->whereNotNull('global_contribution_amount')
-            ->whereColumn('global_amount_due', '<>', 'global_contribution_amount')
+            ->whereRaw('ABS(global_contribution_amount - COALESCE(global_total_payable, global_amount_due)) >= 0.01')
             ->orderByDesc('updated_at')
             ->limit(3)
             ->get();
 
         foreach ($anomalies as $declaration) {
-            $difference = (float) $declaration->global_contribution_amount - (float) $declaration->global_amount_due;
+            $totalPayable = (float) ($declaration->global_total_payable ?? $declaration->global_amount_due);
+            $difference = (float) $declaration->global_contribution_amount - $totalPayable;
             $alerts->push([
                 'level' => 'warning',
                 'title' => $difference < 0 ? 'Cotisation insuffisante' : 'Cotisation superieure',
                 'message' => sprintf(
-                    '%s - %02d/%d : ecart de %s CDF.',
+                    '%s - %02d/%d : ecart de %s CDF sur le total exigible.',
                     $declaration->employer?->legal_name ?? 'Employeur',
                     $declaration->period_month,
                     $declaration->period_year,
