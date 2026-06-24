@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -32,6 +33,10 @@ class AuthenticationTest extends TestCase
 
     public function test_authenticated_user_can_open_employeurs_page(): void
     {
+        $role = Role::query()->create([
+            'code' => 'AGENT_SES',
+            'label' => 'Agent SES',
+        ]);
         $user = User::query()->create([
             'username' => 'agent',
             'password_hash' => Hash::make('password123'),
@@ -39,6 +44,7 @@ class AuthenticationTest extends TestCase
             'email' => 'agent@jemima.local',
             'is_active' => true,
         ]);
+        $user->roles()->attach($role->id);
 
         $response = $this->actingAs($user)->get('/employeurs');
 

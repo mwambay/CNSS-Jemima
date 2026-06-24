@@ -22,6 +22,9 @@ class DashboardController extends Controller
             ->whereIn('code', ['ADMIN', 'AGENT_SES'])
             ->exists() ?? false;
         $isAdmin = auth()->user()?->roles()->where('code', 'ADMIN')->exists() ?? false;
+        $isSdtOnly = auth()->user()?->roles()->where('code', 'SDT')->exists()
+            && ! $canManageBusiness
+            && ! $isAdmin;
 
         $pendingDeclarationQuery = Declaration::query()
             ->whereIn('status', ['DRAFT', 'SUBMITTED']);
@@ -58,7 +61,7 @@ class DashboardController extends Controller
 
         $trend = $this->buildContributionTrend($today);
         $alerts = $this->buildAlerts($today, $operationalCounts, $canManageBusiness);
-        $suggestions = $this->buildSuggestions($today, $operationalCounts, $isAdmin);
+        $suggestions = $this->buildSuggestions($today, $operationalCounts, $isAdmin, $canManageBusiness);
 
         $recentDeclarations = Declaration::query()
             ->with('employer:id,legal_name')
@@ -68,7 +71,7 @@ class DashboardController extends Controller
             ->limit(6)
             ->get();
 
-        return view('dashboard', [
+        $viewData = [
             'stats' => $stats,
             'operationalCounts' => $operationalCounts,
             'trend' => $trend,
@@ -78,7 +81,9 @@ class DashboardController extends Controller
             'recentDeclarations' => $recentDeclarations,
             'canManageBusiness' => $canManageBusiness,
             'isAdmin' => $isAdmin,
-        ]);
+        ];
+
+        return view($isSdtOnly ? 'dashboard-sdt' : 'dashboard', $viewData);
     }
 
     private function buildContributionTrend(Carbon $today): Collection
@@ -158,11 +163,11 @@ class DashboardController extends Controller
         return $alerts->take(6)->values();
     }
 
-    private function buildSuggestions(Carbon $today, array $counts, bool $isAdmin): Collection
+    private function buildSuggestions(Carbon $today, array $counts, bool $isAdmin, bool $canManageBusiness): Collection
     {
         $suggestions = collect();
 
-        if ($counts['missing_salaries'] > 0) {
+        if ($canManageBusiness && $counts['missing_salaries'] > 0) {
             $suggestions->push([
                 'title' => 'Completer les salaires de base',
                 'message' => $counts['missing_salaries'].' rattachement(s) actif(s) sans salaire bloquent le calcul global.',
@@ -170,7 +175,7 @@ class DashboardController extends Controller
             ]);
         }
 
-        if ($counts['pending_affiliations'] > 0) {
+        if ($canManageBusiness && $counts['pending_affiliations'] > 0) {
             $suggestions->push([
                 'title' => 'Traiter les demandes les plus anciennes',
                 'message' => 'Commencez par les affiliations encore en attente de verification.',

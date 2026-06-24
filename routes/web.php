@@ -8,6 +8,7 @@ use App\Http\Controllers\DeclarationController;
 use App\Http\Controllers\DeclarationInterfaceController;
 use App\Http\Controllers\EmployerController;
 use App\Http\Controllers\EmployerInterfaceController;
+use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\WorkerController;
 use App\Http\Controllers\WorkerInterfaceController;
 use Illuminate\Support\Facades\Route;
@@ -24,13 +25,12 @@ Route::middleware('guest')->group(function (): void {
 Route::middleware('auth')->group(function (): void {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/employeurs', [EmployerInterfaceController::class, 'index'])->name('employers.interface');
-    Route::get('/employeurs/{employer}', [EmployerInterfaceController::class, 'show'])->name('employers.show');
-    Route::get('/travailleurs', [WorkerInterfaceController::class, 'index'])->name('workers.interface');
-    Route::get('/declarations', [DeclarationInterfaceController::class, 'index'])->name('declarations.interface');
-    Route::get('/declarations/{declaration}', [DeclarationInterfaceController::class, 'show'])->name('declarations.show');
-
     Route::middleware('role:ADMIN,AGENT_SES')->group(function (): void {
+        Route::get('/employeurs', [EmployerInterfaceController::class, 'index'])->name('employers.interface');
+        Route::get('/employeurs/{employer}', [EmployerInterfaceController::class, 'show'])->name('employers.show');
+        Route::get('/travailleurs', [WorkerInterfaceController::class, 'index'])->name('workers.interface');
+        Route::get('/declarations', [DeclarationInterfaceController::class, 'index'])->name('declarations.interface');
+        Route::get('/declarations/{declaration}', [DeclarationInterfaceController::class, 'show'])->name('declarations.show');
         Route::get('/affiliations', [AffiliationRequestController::class, 'index'])->name('affiliations.index');
         Route::get('/affiliations/{affiliationRequest}', [AffiliationRequestController::class, 'show'])->name('affiliations.show');
         Route::post('/affiliations/{affiliationRequest}/approve', [AffiliationRequestController::class, 'approve'])->name('affiliations.approve');
@@ -41,6 +41,9 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/parametres/cotisations', [ContributionRateController::class, 'index'])->name('contribution-rates.index');
         Route::post('/parametres/cotisations', [ContributionRateController::class, 'store'])->name('contribution-rates.store');
         Route::put('/parametres/cotisations/{contributionRate}', [ContributionRateController::class, 'update'])->name('contribution-rates.update');
+        Route::get('/utilisateurs', [UserManagementController::class, 'index'])->name('users.index');
+        Route::post('/utilisateurs', [UserManagementController::class, 'store'])->name('users.store');
+        Route::put('/utilisateurs/{user}', [UserManagementController::class, 'update'])->name('users.update');
     });
 
     Route::prefix('api')

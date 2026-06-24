@@ -224,13 +224,21 @@
         </div>
 
         <nav class="nav">
+            @php
+                $isAdmin = auth()->user()->roles()->where('code', 'ADMIN')->exists();
+                $isAgentSes = auth()->user()->roles()->where('code', 'AGENT_SES')->exists();
+                $canManageBusiness = $isAdmin || $isAgentSes;
+            @endphp
             <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Tableau de bord</a>
-            <a class="nav-link {{ request()->routeIs('affiliations.*') ? 'active' : '' }}" href="{{ route('affiliations.index') }}">Affiliations</a>
-            <a class="nav-link {{ request()->routeIs('employers.*') ? 'active' : '' }}" href="{{ route('employers.interface') }}">Employeurs</a>
-            <a class="nav-link {{ request()->routeIs('workers.interface') ? 'active' : '' }}" href="{{ route('workers.interface') }}">Travailleurs</a>
-            <a class="nav-link {{ request()->routeIs('declarations.*') ? 'active' : '' }}" href="{{ route('declarations.interface') }}">Declarations</a>
-            @if(auth()->user()->roles()->where('code', 'ADMIN')->exists())
+            @if($canManageBusiness)
+                <a class="nav-link {{ request()->routeIs('affiliations.*') ? 'active' : '' }}" href="{{ route('affiliations.index') }}">Affiliations</a>
+                <a class="nav-link {{ request()->routeIs('employers.*') ? 'active' : '' }}" href="{{ route('employers.interface') }}">Employeurs</a>
+                <a class="nav-link {{ request()->routeIs('workers.interface') ? 'active' : '' }}" href="{{ route('workers.interface') }}">Travailleurs</a>
+                <a class="nav-link {{ request()->routeIs('declarations.*') ? 'active' : '' }}" href="{{ route('declarations.interface') }}">Declarations</a>
+            @endif
+            @if($isAdmin)
                 <a class="nav-link {{ request()->routeIs('contribution-rates.*') ? 'active' : '' }}" href="{{ route('contribution-rates.index') }}">Parametres cotisations</a>
+                <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">Utilisateurs</a>
             @endif
         </nav>
     </aside>

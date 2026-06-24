@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Employer;
 use App\Models\Employment;
+use App\Models\Role;
 use App\Models\User;
 use App\Models\Worker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,6 +17,10 @@ class EmployerDetailsPageTest extends TestCase
 
     public function test_authenticated_user_can_view_employer_details_with_workers(): void
     {
+        $role = Role::query()->create([
+            'code' => 'AGENT_SES',
+            'label' => 'Agent SES',
+        ]);
         $user = User::query()->create([
             'username' => 'viewer',
             'password_hash' => Hash::make('password123'),
@@ -23,6 +28,7 @@ class EmployerDetailsPageTest extends TestCase
             'email' => 'viewer@jemima.local',
             'is_active' => true,
         ]);
+        $user->roles()->attach($role->id);
 
         $employer = Employer::query()->create([
             'affiliation_number' => 'EMP-DETAIL-001',

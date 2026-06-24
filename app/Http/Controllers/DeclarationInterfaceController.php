@@ -10,7 +10,7 @@ class DeclarationInterfaceController extends Controller
 {
     public function index(): View
     {
-        $canManageDeclarations = auth()->user()?->roles()->where('code', 'ADMIN')->exists() ?? false;
+        $canManageDeclarations = auth()->user()?->roles()->whereIn('code', ['ADMIN', 'AGENT_SES'])->exists() ?? false;
 
         $employers = Employer::query()
             ->orderBy('legal_name')
@@ -24,7 +24,7 @@ class DeclarationInterfaceController extends Controller
 
     public function show(Declaration $declaration): View
     {
-        $canManageDeclarations = auth()->user()?->roles()->where('code', 'ADMIN')->exists() ?? false;
+        $canManageDeclarations = auth()->user()?->roles()->whereIn('code', ['ADMIN', 'AGENT_SES'])->exists() ?? false;
 
         $declaration->load('employer');
 
