@@ -12,6 +12,8 @@ use Illuminate\View\View;
 
 class UserManagementController extends Controller
 {
+    private const ASSIGNABLE_ROLE_CODES = ['ADMIN', 'AGENT_SES', 'SDT'];
+
     public function index(): View
     {
         return view('users.index', [
@@ -19,7 +21,10 @@ class UserManagementController extends Controller
                 ->with('roles:id,code,label')
                 ->orderBy('full_name')
                 ->paginate(15),
-            'roles' => Role::query()->orderBy('label')->get(['id', 'code', 'label']),
+            'roles' => Role::query()
+                ->whereIn('code', self::ASSIGNABLE_ROLE_CODES)
+                ->orderByRaw("CASE code WHEN 'ADMIN' THEN 1 WHEN 'AGENT_SES' THEN 2 WHEN 'SDT' THEN 3 ELSE 4 END")
+                ->get(['id', 'code', 'label']),
         ]);
     }
 
@@ -32,7 +37,7 @@ class UserManagementController extends Controller
             'password' => ['required', 'string', 'min:8', 'max:100'],
             'is_active' => ['nullable', 'boolean'],
             'roles' => ['required', 'array', 'min:1'],
-            'roles.*' => ['integer', 'exists:roles,id'],
+            'roles.*' => ['integer', $this->assignableRoleRule()],
         ]);
 
         $user = User::query()->create([
@@ -59,7 +64,7 @@ class UserManagementController extends Controller
             'password' => ['nullable', 'string', 'min:8', 'max:100'],
             'is_active' => ['nullable', 'boolean'],
             'roles' => ['required', 'array', 'min:1'],
-            'roles.*' => ['integer', 'exists:roles,id'],
+            'roles.*' => ['integer', $this->assignableRoleRule()],
         ]);
 
         $newIsActive = (bool) ($data['is_active'] ?? false);
@@ -113,5 +118,11 @@ class UserManagementController extends Controller
             ->where('is_active', true)
             ->whereHas('roles', fn ($query) => $query->where('code', 'ADMIN'))
             ->doesntExist();
+    }
+
+    private function assignableRoleRule()
+    {
+        return Rule::exists('roles', 'id')
+            ->where(fn ($query) => $query->whereIn('code', self::ASSIGNABLE_ROLE_CODES));
     }
 }

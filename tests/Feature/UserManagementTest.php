@@ -15,13 +15,18 @@ class UserManagementTest extends TestCase
     public function test_admin_can_open_users_page(): void
     {
         $admin = $this->userWithRole('ADMIN');
+        Role::query()->create(['code' => 'AGENT_SES', 'label' => 'Agent SES']);
         Role::query()->create(['code' => 'SDT', 'label' => 'Service de traitement']);
+        Role::query()->create(['code' => 'AUDIT', 'label' => 'Audit']);
 
         $this->actingAs($admin)
             ->get('/utilisateurs')
             ->assertOk()
             ->assertSee('Gestion des utilisateurs')
-            ->assertSee('Service de traitement');
+            ->assertSee('ADMIN')
+            ->assertSee('Agent SES')
+            ->assertSee('Service de traitement')
+            ->assertDontSee('Audit');
     }
 
     public function test_non_admin_cannot_manage_users(): void
@@ -91,6 +96,25 @@ class UserManagementTest extends TestCase
                 'roles' => [$sdt->id],
             ])
             ->assertSessionHasErrors('roles');
+    }
+
+    public function test_admin_cannot_assign_legacy_role_from_users_form(): void
+    {
+        $admin = $this->userWithRole('ADMIN');
+        $legacyRole = Role::query()->create(['code' => 'AUDIT', 'label' => 'Audit']);
+
+        $this->actingAs($admin)
+            ->post('/utilisateurs', [
+                'username' => 'audit_user',
+                'full_name' => 'Audit User',
+                'email' => 'audit@jemima.local',
+                'password' => 'password123',
+                'is_active' => '1',
+                'roles' => [$legacyRole->id],
+            ])
+            ->assertSessionHasErrors('roles.0');
+
+        $this->assertDatabaseMissing('users', ['username' => 'audit_user']);
     }
 
     private function userWithRole(string $roleCode): User
