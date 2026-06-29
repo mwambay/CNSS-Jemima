@@ -233,6 +233,8 @@
             <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Tableau de bord</a>
             @if($isSdt)
                 <a class="nav-link {{ request()->routeIs('sdt.affiliations.*') ? 'active' : '' }}" href="{{ route('sdt.affiliations.index') }}">Avis affiliations</a>
+                <a class="nav-link {{ request()->routeIs('sdt.reports.contributions') ? 'active' : '' }}" href="{{ route('sdt.reports.contributions') }}">Rapport cotisation</a>
+                <a class="nav-link {{ request()->routeIs('sdt.reports.activity') ? 'active' : '' }}" href="{{ route('sdt.reports.activity') }}">Rapport activite</a>
             @endif
             @if($canManageBusiness)
                 <a class="nav-link {{ request()->routeIs('affiliations.*') ? 'active' : '' }}" href="{{ route('affiliations.index') }}">Affiliations</a>

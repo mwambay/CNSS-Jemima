@@ -8,6 +8,7 @@ use App\Http\Controllers\DeclarationController;
 use App\Http\Controllers\DeclarationInterfaceController;
 use App\Http\Controllers\EmployerController;
 use App\Http\Controllers\EmployerInterfaceController;
+use App\Http\Controllers\SdtReportController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\WorkerController;
 use App\Http\Controllers\WorkerInterfaceController;
@@ -42,6 +43,8 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/sdt/affiliations', [AffiliationRequestController::class, 'sdtIndex'])->name('sdt.affiliations.index');
         Route::get('/sdt/affiliations/{affiliationRequest}', [AffiliationRequestController::class, 'sdtShow'])->name('sdt.affiliations.show');
         Route::post('/sdt/affiliations/{affiliationRequest}/opinion', [AffiliationRequestController::class, 'submitSdtOpinion'])->name('sdt.affiliations.opinion');
+        Route::get('/sdt/rapports/cotisations', [SdtReportController::class, 'contributions'])->name('sdt.reports.contributions');
+        Route::get('/sdt/rapports/activite', [SdtReportController::class, 'activity'])->name('sdt.reports.activity');
     });
 
     Route::middleware('role:ADMIN')->group(function (): void {

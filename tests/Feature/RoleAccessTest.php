@@ -20,6 +20,8 @@ class RoleAccessTest extends TestCase
             ->get('/')
             ->assertOk()
             ->assertSee('Tableau de bord SDT')
+            ->assertSee('Rapport cotisation')
+            ->assertSee('Rapport activite')
             ->assertDontSee('href="http://localhost/affiliations"', false)
             ->assertDontSee('href="http://localhost/employeurs"', false)
             ->assertDontSee('href="http://localhost/travailleurs"', false)
@@ -36,6 +38,31 @@ class RoleAccessTest extends TestCase
         $this->actingAs($sdt)->get('/travailleurs')->assertForbidden();
         $this->actingAs($sdt)->get('/affiliations')->assertForbidden();
         $this->actingAs($sdt)->get('/utilisateurs')->assertForbidden();
+    }
+
+    public function test_sdt_can_open_reports_pages(): void
+    {
+        $sdt = $this->userWithRole('SDT');
+
+        $this->actingAs($sdt)
+            ->get('/sdt/rapports/cotisations')
+            ->assertOk()
+            ->assertSee('Rapport de cotisation')
+            ->assertSee('Montant du');
+
+        $this->actingAs($sdt)
+            ->get('/sdt/rapports/activite')
+            ->assertOk()
+            ->assertSee('Rapport d activite')
+            ->assertSee('Affiliations recues');
+    }
+
+    public function test_agent_ses_cannot_open_sdt_reports(): void
+    {
+        $agent = $this->userWithRole('AGENT_SES');
+
+        $this->actingAs($agent)->get('/sdt/rapports/cotisations')->assertForbidden();
+        $this->actingAs($agent)->get('/sdt/rapports/activite')->assertForbidden();
     }
 
     public function test_agent_ses_can_open_declarations_as_cotisation_page(): void
