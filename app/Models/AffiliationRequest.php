@@ -16,6 +16,12 @@ class AffiliationRequest extends Model
         'processed_by_user_id',
         'processed_at',
         'rejection_reason',
+        'sdt_opinion_status',
+        'sdt_opinion_requested_at',
+        'sdt_opinion_requested_by_user_id',
+        'sdt_opinion_note',
+        'sdt_opinion_given_at',
+        'sdt_opinion_given_by_user_id',
         'legal_name',
         'abbreviation',
         'physical_employer_name',
@@ -58,6 +64,8 @@ class AffiliationRequest extends Model
     {
         return [
             'processed_at' => 'datetime',
+            'sdt_opinion_requested_at' => 'datetime',
+            'sdt_opinion_given_at' => 'datetime',
             'takeover_date' => 'date',
             'rccm_delivered_on' => 'date',
             'activity_start_date' => 'date',
@@ -79,5 +87,15 @@ class AffiliationRequest extends Model
     public function processedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'processed_by_user_id');
+    }
+
+    public function sdtOpinionRequestedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'sdt_opinion_requested_by_user_id');
+    }
+
+    public function sdtOpinionGivenBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'sdt_opinion_given_by_user_id');
     }
 }

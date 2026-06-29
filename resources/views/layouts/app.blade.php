@@ -227,9 +227,13 @@
             @php
                 $isAdmin = auth()->user()->roles()->where('code', 'ADMIN')->exists();
                 $isAgentSes = auth()->user()->roles()->where('code', 'AGENT_SES')->exists();
+                $isSdt = auth()->user()->roles()->where('code', 'SDT')->exists();
                 $canManageBusiness = $isAdmin || $isAgentSes;
             @endphp
             <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Tableau de bord</a>
+            @if($isSdt)
+                <a class="nav-link {{ request()->routeIs('sdt.affiliations.*') ? 'active' : '' }}" href="{{ route('sdt.affiliations.index') }}">Avis affiliations</a>
+            @endif
             @if($canManageBusiness)
                 <a class="nav-link {{ request()->routeIs('affiliations.*') ? 'active' : '' }}" href="{{ route('affiliations.index') }}">Affiliations</a>
                 <a class="nav-link {{ request()->routeIs('employers.*') ? 'active' : '' }}" href="{{ route('employers.interface') }}">Employeurs</a>

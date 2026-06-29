@@ -150,6 +150,91 @@ class AffiliationRequestTest extends TestCase
         ]);
     }
 
+    public function test_agent_must_wait_for_sdt_opinion_when_requested(): void
+    {
+        $agent = $this->createUserWithRole('AGENT_SES');
+        $sdt = $this->createUserWithRole('SDT');
+        $affiliationRequest = AffiliationRequest::query()->create([
+            'tracking_number' => 'AFF-20260629-SDT001',
+            'status' => 'PENDING',
+            'legal_name' => 'Societe Consultative',
+            'phone' => '+243990000005',
+            'email' => 'consultative@test.local',
+            'legal_form' => 'SARL',
+            'primary_activity' => 'Services',
+        ]);
+
+        $this->actingAs($agent)
+            ->post(route('affiliations.request-sdt-opinion', $affiliationRequest))
+            ->assertRedirect(route('affiliations.show', $affiliationRequest));
+
+        $this->assertDatabaseHas('affiliation_requests', [
+            'id' => $affiliationRequest->id,
+            'sdt_opinion_status' => 'REQUESTED',
+            'sdt_opinion_requested_by_user_id' => $agent->id,
+        ]);
+
+        $this->actingAs($agent)
+            ->post(route('affiliations.approve', $affiliationRequest), [
+                'affiliation_number' => 'CNSS-SDT-001',
+            ])
+            ->assertSessionHasErrors('affiliation_number');
+
+        $this->actingAs($sdt)
+            ->post(route('sdt.affiliations.opinion', $affiliationRequest), [
+                'sdt_opinion_status' => 'FAVORABLE',
+                'sdt_opinion_note' => 'Les informations fournies sont coherentes avec le dossier presente.',
+            ])
+            ->assertRedirect(route('sdt.affiliations.show', $affiliationRequest));
+
+        $this->assertDatabaseHas('affiliation_requests', [
+            'id' => $affiliationRequest->id,
+            'sdt_opinion_status' => 'FAVORABLE',
+            'sdt_opinion_given_by_user_id' => $sdt->id,
+        ]);
+
+        $this->actingAs($agent)
+            ->post(route('affiliations.approve', $affiliationRequest), [
+                'affiliation_number' => 'CNSS-SDT-001',
+            ])
+            ->assertRedirect(route('affiliations.show', $affiliationRequest));
+
+        $this->assertDatabaseHas('affiliation_requests', [
+            'id' => $affiliationRequest->id,
+            'status' => 'APPROVED',
+        ]);
+    }
+
+    public function test_sdt_only_sees_affiliations_requested_for_opinion(): void
+    {
+        $agent = $this->createUserWithRole('AGENT_SES');
+        $sdt = $this->createUserWithRole('SDT');
+        $requested = AffiliationRequest::query()->create([
+            'tracking_number' => 'AFF-20260629-SDT002',
+            'status' => 'PENDING',
+            'legal_name' => 'Demande Avec Avis',
+            'sdt_opinion_status' => 'REQUESTED',
+            'sdt_opinion_requested_at' => now(),
+            'sdt_opinion_requested_by_user_id' => $agent->id,
+        ]);
+        AffiliationRequest::query()->create([
+            'tracking_number' => 'AFF-20260629-SDT003',
+            'status' => 'PENDING',
+            'legal_name' => 'Demande Sans Avis',
+        ]);
+
+        $this->actingAs($sdt)
+            ->get(route('sdt.affiliations.index'))
+            ->assertOk()
+            ->assertSee('Demande Avec Avis')
+            ->assertDontSee('Demande Sans Avis');
+
+        $this->actingAs($sdt)
+            ->get(route('sdt.affiliations.show', $requested))
+            ->assertOk()
+            ->assertSee('Transmettre l');
+    }
+
     private function createUserWithRole(string $roleCode): User
     {
         $role = Role::query()->create([

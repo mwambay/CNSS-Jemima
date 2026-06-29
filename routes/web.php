@@ -33,8 +33,15 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/declarations/{declaration}', [DeclarationInterfaceController::class, 'show'])->name('declarations.show');
         Route::get('/affiliations', [AffiliationRequestController::class, 'index'])->name('affiliations.index');
         Route::get('/affiliations/{affiliationRequest}', [AffiliationRequestController::class, 'show'])->name('affiliations.show');
+        Route::post('/affiliations/{affiliationRequest}/request-sdt-opinion', [AffiliationRequestController::class, 'requestSdtOpinion'])->name('affiliations.request-sdt-opinion');
         Route::post('/affiliations/{affiliationRequest}/approve', [AffiliationRequestController::class, 'approve'])->name('affiliations.approve');
         Route::post('/affiliations/{affiliationRequest}/reject', [AffiliationRequestController::class, 'reject'])->name('affiliations.reject');
+    });
+
+    Route::middleware('role:SDT')->group(function (): void {
+        Route::get('/sdt/affiliations', [AffiliationRequestController::class, 'sdtIndex'])->name('sdt.affiliations.index');
+        Route::get('/sdt/affiliations/{affiliationRequest}', [AffiliationRequestController::class, 'sdtShow'])->name('sdt.affiliations.show');
+        Route::post('/sdt/affiliations/{affiliationRequest}/opinion', [AffiliationRequestController::class, 'submitSdtOpinion'])->name('sdt.affiliations.opinion');
     });
 
     Route::middleware('role:ADMIN')->group(function (): void {
