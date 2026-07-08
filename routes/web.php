@@ -14,6 +14,14 @@ use App\Http\Controllers\WorkerController;
 use App\Http\Controllers\WorkerInterfaceController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+
+    return view('landing');
+})->name('landing');
+
 Route::get('/affiliation', [AffiliationRequestController::class, 'create'])->name('affiliation.create');
 Route::post('/affiliation', [AffiliationRequestController::class, 'store'])->name('affiliation.store');
 Route::get('/affiliation/{affiliationRequest}/soumise', [AffiliationRequestController::class, 'submitted'])->name('affiliation.submitted');
@@ -24,7 +32,7 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::middleware('auth')->group(function (): void {
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::middleware('role:ADMIN,AGENT_SES')->group(function (): void {
         Route::get('/employeurs', [EmployerInterfaceController::class, 'index'])->name('employers.interface');

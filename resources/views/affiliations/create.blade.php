@@ -87,14 +87,12 @@
 
         .hero {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 340px;
             gap: 1.1rem;
             align-items: stretch;
             margin-bottom: 1.1rem;
         }
 
         .hero-main,
-        .summary-card,
         .form-card {
             background: var(--paper);
             border: 1px solid var(--line-soft);
@@ -131,41 +129,6 @@
             margin: .65rem 0 0;
             color: var(--muted);
             line-height: 1.55;
-        }
-
-        .summary-card {
-            padding: 1rem;
-            display: grid;
-            gap: .7rem;
-            align-content: start;
-        }
-
-        .summary-title {
-            margin: 0;
-            font-size: 1rem;
-            color: var(--blue);
-        }
-
-        .summary-row {
-            display: flex;
-            gap: .6rem;
-            align-items: flex-start;
-            color: var(--muted);
-            font-size: .9rem;
-            line-height: 1.35;
-        }
-
-        .summary-dot {
-            flex: 0 0 auto;
-            width: 22px;
-            height: 22px;
-            border-radius: 999px;
-            background: var(--teal-soft);
-            color: var(--teal);
-            display: grid;
-            place-items: center;
-            font-weight: 900;
-            font-size: .76rem;
         }
 
         .form-shell {
@@ -281,12 +244,6 @@
             font-weight: 800;
         }
 
-        .hint {
-            color: var(--muted);
-            font-size: .8rem;
-            line-height: 1.35;
-        }
-
         input,
         select,
         textarea {
@@ -357,7 +314,6 @@
         }
 
         @media (max-width: 980px) {
-            .hero,
             .form-shell {
                 grid-template-columns: 1fr;
             }
@@ -399,9 +355,8 @@
     <div class="topbar-inner">
         <div class="brand">
             <img class="brand-mark" src="{{ asset('images/logo-CNSS.png') }}" alt="Logo CNSS">
-            <span>Controle des declarations et cotisations</span>
+            <span>Contrôle des déclarations</span>
         </div>
-        <div class="topbar-meta">Votre demande d'affiliation</div>
     </div>
 </header>
 
@@ -409,27 +364,12 @@
     <section class="hero">
         <div class="hero-main">
             <p class="eyebrow">Demande publique</p>
-            <h1>Affiliez votre entreprise a la CNSS</h1>
+            <h1>Affiliez votre entreprise à la CNSS</h1>
             <p class="hero-copy">
-                Renseignez les informations de votre entreprise, son adresse, ses activites et son personnel.
-                Apres envoi, la CNSS examinera votre demande et vous attribuera un numero d'affiliation si elle est validee.
+                Renseignez les informations de votre entreprise, son adresse, ses activités et son personnel.
+                Après envoi, la CNSS examinera votre demande et vous attribuera un numéro d'affiliation si elle est validée.
             </p>
         </div>
-        <aside class="summary-card" aria-label="Traitement de votre demande">
-            <h2 class="summary-title">Ce qui se passe ensuite</h2>
-            <div class="summary-row">
-                <span class="summary-dot">1</span>
-                <span>Vous envoyez votre demande sans creer de compte applicatif.</span>
-            </div>
-            <div class="summary-row">
-                <span class="summary-dot">2</span>
-                <span>La CNSS verifie les informations que vous avez fournies.</span>
-            </div>
-            <div class="summary-row">
-                <span class="summary-dot">3</span>
-                <span>Apres approbation, votre entreprise est enregistree avec son numero CNSS.</span>
-            </div>
-        </aside>
     </section>
 
     <div class="form-shell">
@@ -437,7 +377,7 @@
             <a href="#identification">Identification</a>
             <a href="#adresse">Adresse et contacts</a>
             <a href="#cadre">Cadre juridique</a>
-            <a href="#activite">Activite</a>
+            <a href="#activite">Activité</a>
             <a href="#personnel">Personnel</a>
             <a href="#signature">Signature</a>
         </nav>
@@ -446,39 +386,32 @@
             @csrf
 
             <div class="notice">
-                Les champs marques d'un astisque sont requis. Si vous representez une entreprise, indiquez sa raison sociale.
-                Si vous etes une personne physique employant du personnel, renseignez votre nom complet.
+                Les champs marqués d'un astérisque sont requis. Si vous représentez une entreprise, indiquez sa raison sociale.
+                Si vous êtes une personne physique employant du personnel, renseignez votre nom complet.
             </div>
 
             <section class="form-section" id="identification">
                 <div class="section-head">
                     <div>
                         <h2 class="section-title">Votre identification</h2>
-                        <p class="section-note">Ces informations permettent a la CNSS d'identifier votre entreprise ou votre activite.</p>
+                        <p class="section-note">Ces informations permettent à la CNSS d'identifier votre entreprise ou votre activité.</p>
                     </div>
-                    <span class="section-pill">Etape 1</span>
+                    <span class="section-pill">Étape 1</span>
                 </div>
                 <div class="grid">
                     <div class="field">
-                        <label for="management_center">Centre de gestion</label>
-                        <input id="management_center" name="management_center" value="{{ old('management_center') }}" maxlength="150">
-                        @error('management_center') <span class="error">{{ $message }}</span> @enderror
-                    </div>
-                    <div class="field">
-                        <label for="registration_number">Numero d'immatriculation existant</label>
+                        <label for="registration_number">Numéro d'immatriculation existant</label>
                         <input id="registration_number" name="registration_number" value="{{ old('registration_number') }}" maxlength="80">
                         @error('registration_number') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field">
                         <label for="legal_name">Raison sociale <span class="required">*</span></label>
                         <input id="legal_name" name="legal_name" value="{{ old('legal_name') }}" maxlength="200" placeholder="Ex. Jemima Services SARL">
-                        <span class="hint">A remplir si vous representez une societe, une association ou un etablissement.</span>
                         @error('legal_name') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field">
                         <label for="physical_employer_name">Votre nom comme employeur personne physique <span class="required">*</span></label>
                         <input id="physical_employer_name" name="physical_employer_name" value="{{ old('physical_employer_name') }}" maxlength="200" placeholder="Nom complet">
-                        <span class="hint">Requis si aucune raison sociale n'est indiquee.</span>
                         @error('physical_employer_name') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field">
@@ -489,7 +422,7 @@
                     <div class="field">
                         <label for="legal_form">Forme juridique</label>
                         <select id="legal_form" name="legal_form">
-                            <option value="">Selectionner</option>
+                            <option value="">Sélectionner</option>
                             @foreach(['SARL', 'SA', 'ASBL', 'ETS', 'AUTRE'] as $option)
                                 <option value="{{ $option }}" @selected(old('legal_form') === $option)>{{ $option }}</option>
                             @endforeach
@@ -503,9 +436,9 @@
                 <div class="section-head">
                     <div>
                         <h2 class="section-title">Adresse et contacts</h2>
-                        <p class="section-note">Indiquez ou votre activite est situee et comment la CNSS peut vous contacter.</p>
+                        <p class="section-note">Indiquez où votre activité est située et comment la CNSS peut vous contacter.</p>
                     </div>
-                    <span class="section-pill">Etape 2</span>
+                    <span class="section-pill">Étape 2</span>
                 </div>
                 <div class="grid three">
                     <div class="field">
@@ -534,12 +467,12 @@
                         @error('province') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field">
-                        <label for="postal_box">Boite postale</label>
+                        <label for="postal_box">Boîte postale</label>
                         <input id="postal_box" name="postal_box" value="{{ old('postal_box') }}" maxlength="80">
                         @error('postal_box') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field">
-                        <label for="phone">Telephone <span class="required">*</span></label>
+                        <label for="phone">Téléphone <span class="required">*</span></label>
                         <input id="phone" name="phone" value="{{ old('phone') }}" maxlength="30" required placeholder="+243...">
                         @error('phone') <span class="error">{{ $message }}</span> @enderror
                     </div>
@@ -565,38 +498,38 @@
                 <div class="section-head">
                     <div>
                         <h2 class="section-title">Cadre juridique</h2>
-                        <p class="section-note">Ajoutez vos references d'enregistrement et vos documents administratifs disponibles.</p>
+                        <p class="section-note">Ajoutez vos références d'enregistrement et vos documents administratifs disponibles.</p>
                     </div>
-                    <span class="section-pill">Etape 3</span>
+                    <span class="section-pill">Étape 3</span>
                 </div>
                 <div class="grid">
                     <div class="field">
-                        <label for="rccm_number">Numero RCCM</label>
+                        <label for="rccm_number">Numéro RCCM</label>
                         <input id="rccm_number" name="rccm_number" value="{{ old('rccm_number') }}" maxlength="80">
                         @error('rccm_number') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field">
-                        <label for="rccm_delivered_at">RCCM delivre a</label>
+                        <label for="rccm_delivered_at">RCCM délivré à</label>
                         <input id="rccm_delivered_at" name="rccm_delivered_at" value="{{ old('rccm_delivered_at') }}" maxlength="120">
                         @error('rccm_delivered_at') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field">
-                        <label for="rccm_delivered_on">RCCM delivre le</label>
+                        <label for="rccm_delivered_on">RCCM délivré le</label>
                         <input id="rccm_delivered_on" name="rccm_delivered_on" type="date" value="{{ old('rccm_delivered_on') }}">
                         @error('rccm_delivered_on') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field">
-                        <label for="approval_order_ref">Reference arrete agrement</label>
+                        <label for="approval_order_ref">Référence arrêté d'agrément</label>
                         <input id="approval_order_ref" name="approval_order_ref" value="{{ old('approval_order_ref') }}" maxlength="150">
                         @error('approval_order_ref') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field">
-                        <label for="creation_act_ref">Reference acte constitutif</label>
+                        <label for="creation_act_ref">Référence acte constitutif</label>
                         <input id="creation_act_ref" name="creation_act_ref" value="{{ old('creation_act_ref') }}" maxlength="150">
                         @error('creation_act_ref') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field">
-                        <label for="head_office">Siege social</label>
+                        <label for="head_office">Siège social</label>
                         <input id="head_office" name="head_office" value="{{ old('head_office') }}" maxlength="200">
                         @error('head_office') <span class="error">{{ $message }}</span> @enderror
                     </div>
@@ -616,24 +549,24 @@
             <section class="form-section" id="activite">
                 <div class="section-head">
                     <div>
-                        <h2 class="section-title">Activite economique</h2>
-                        <p class="section-note">Activite principale et date de debut d'exploitation.</p>
+                        <h2 class="section-title">Activité économique</h2>
+                        <p class="section-note">Activité principale et date de début d'exploitation.</p>
                     </div>
-                    <span class="section-pill">Etape 4</span>
+                    <span class="section-pill">Étape 4</span>
                 </div>
                 <div class="grid">
                     <div class="field">
-                        <label for="primary_activity">Activite principale</label>
+                        <label for="primary_activity">Activité principale</label>
                         <input id="primary_activity" name="primary_activity" value="{{ old('primary_activity') }}" maxlength="200">
                         @error('primary_activity') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field">
-                        <label for="secondary_activity">Activite secondaire</label>
+                        <label for="secondary_activity">Activité secondaire</label>
                         <input id="secondary_activity" name="secondary_activity" value="{{ old('secondary_activity') }}" maxlength="200">
                         @error('secondary_activity') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field">
-                        <label for="activity_start_date">Date debut activite</label>
+                        <label for="activity_start_date">Date début activité</label>
                         <input id="activity_start_date" name="activity_start_date" type="date" value="{{ old('activity_start_date') }}">
                         @error('activity_start_date') <span class="error">{{ $message }}</span> @enderror
                     </div>
@@ -644,13 +577,13 @@
                 <div class="section-head">
                     <div>
                         <h2 class="section-title">Personnel et masse salariale</h2>
-                        <p class="section-note">Donnees initiales pour l'affiliation et la future declaration des cotisations.</p>
+                        <p class="section-note">Données initiales pour l'affiliation et la future déclaration des cotisations.</p>
                     </div>
-                    <span class="section-pill">Etape 5</span>
+                    <span class="section-pill">Étape 5</span>
                 </div>
                 <div class="grid">
                     <div class="field">
-                        <label for="personnel_employment_start_date">Date debut emploi du personnel</label>
+                        <label for="personnel_employment_start_date">Date début emploi du personnel</label>
                         <input id="personnel_employment_start_date" name="personnel_employment_start_date" type="date" value="{{ old('personnel_employment_start_date') }}">
                         @error('personnel_employment_start_date') <span class="error">{{ $message }}</span> @enderror
                     </div>
@@ -660,17 +593,17 @@
                         @error('workers_count') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field">
-                        <label for="assimilated_workers_count">Nombre de travailleurs assimiles</label>
+                        <label for="assimilated_workers_count">Nombre de travailleurs assimilés</label>
                         <input id="assimilated_workers_count" name="assimilated_workers_count" type="number" min="0" value="{{ old('assimilated_workers_count') }}">
                         @error('assimilated_workers_count') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field">
-                        <label for="monthly_workers_gross_pay">Remuneration brute mensuelle</label>
+                        <label for="monthly_workers_gross_pay">Rémunération brute mensuelle</label>
                         <input id="monthly_workers_gross_pay" name="monthly_workers_gross_pay" type="number" min="0" step="0.01" value="{{ old('monthly_workers_gross_pay') }}">
                         @error('monthly_workers_gross_pay') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field">
-                        <label for="monthly_assimilated_workers_gross_income">Revenu brut assimiles</label>
+                        <label for="monthly_assimilated_workers_gross_income">Revenu brut assimilés</label>
                         <input id="monthly_assimilated_workers_gross_income" name="monthly_assimilated_workers_gross_income" type="number" min="0" step="0.01" value="{{ old('monthly_assimilated_workers_gross_income') }}">
                         @error('monthly_assimilated_workers_gross_income') <span class="error">{{ $message }}</span> @enderror
                     </div>
@@ -685,10 +618,10 @@
             <section class="form-section" id="signature">
                 <div class="section-head">
                     <div>
-                        <h2 class="section-title">Reprise, signature et declaration</h2>
-                        <p class="section-note">Completez cette partie si vous reprenez une activite existante, puis indiquez le lieu et la date de signature.</p>
+                        <h2 class="section-title">Reprise, signature et déclaration</h2>
+                        <p class="section-note">Complétez cette partie si vous reprenez une activité existante, puis indiquez le lieu et la date de signature.</p>
                     </div>
-                    <span class="section-pill">Etape 6</span>
+                    <span class="section-pill">Étape 6</span>
                 </div>
                 <div class="grid">
                     <div class="field">
@@ -707,12 +640,12 @@
                         @error('signed_at') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field full">
-                        <label for="transferor_names">Noms des cedants</label>
+                        <label for="transferor_names">Noms des cédants</label>
                         <textarea id="transferor_names" name="transferor_names">{{ old('transferor_names') }}</textarea>
                         @error('transferor_names') <span class="error">{{ $message }}</span> @enderror
                     </div>
                     <div class="field full">
-                        <label for="transferor_affiliation_numbers">Numeros d'affiliation des cedants</label>
+                        <label for="transferor_affiliation_numbers">Numéros d'affiliation des cédants</label>
                         <textarea id="transferor_affiliation_numbers" name="transferor_affiliation_numbers">{{ old('transferor_affiliation_numbers') }}</textarea>
                         @error('transferor_affiliation_numbers') <span class="error">{{ $message }}</span> @enderror
                     </div>
@@ -721,8 +654,8 @@
 
             <div class="actions">
                 <div class="actions-copy">
-                    Apres soumission, vous recevrez un numero de suivi. Votre entreprise sera creee dans le systeme
-                    uniquement apres approbation par la CNSS.
+                    Après soumission, vous recevrez un numéro de suivi. Votre entreprise sera créée dans le système
+                    uniquement après approbation par la CNSS.
                 </div>
                 <button class="btn" type="submit">Soumettre la demande</button>
             </div>

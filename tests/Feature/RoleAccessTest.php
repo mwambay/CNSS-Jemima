@@ -17,7 +17,7 @@ class RoleAccessTest extends TestCase
         $sdt = $this->userWithRole('SDT');
 
         $this->actingAs($sdt)
-            ->get('/')
+            ->get('/dashboard')
             ->assertOk()
             ->assertSee('Tableau de bord SDT')
             ->assertSee('Rapport cotisation')

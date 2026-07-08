@@ -27,7 +27,7 @@ class AuthenticationTest extends TestCase
             'password' => 'admin1234',
         ]);
 
-        $response->assertRedirect('/');
+        $response->assertRedirect('/dashboard');
         $this->assertAuthenticated();
     }
 

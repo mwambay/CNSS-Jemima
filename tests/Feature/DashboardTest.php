@@ -70,7 +70,7 @@ class DashboardTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->get('/')
+            ->get('/dashboard')
             ->assertOk()
             ->assertSee('Vue d ensemble')
             ->assertSee('Entreprise Tableau')

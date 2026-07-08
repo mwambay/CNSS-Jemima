@@ -165,7 +165,6 @@
         <button class="btn" type="submit">Se connecter</button>
     </form>
 
-    <p class="hint">Compte seed par defaut: admin / admin1234</p>
 </div>
 </body>
 </html>
