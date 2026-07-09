@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class MailDispatch extends Model
 {
+    public const AFFILIATION_TRACKING = 'AFFILIATION_TRACKING';
     public const AFFILIATION_APPROVED = 'AFFILIATION_APPROVED';
     public const AFFILIATION_REJECTED = 'AFFILIATION_REJECTED';
     public const CONTRIBUTION_REMINDER_D_MINUS_5 = 'CONTRIBUTION_REMINDER_D_MINUS_5';

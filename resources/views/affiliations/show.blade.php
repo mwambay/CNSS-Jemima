@@ -44,10 +44,15 @@
     $sdtOpinionGiven = (bool) $affiliationRequest->sdt_opinion_given_at;
     $isWaitingForSdt = $sdtOpinionRequested && ! $sdtOpinionGiven;
     $sdtOpinionLabel = match ($affiliationRequest->sdt_opinion_status) {
-        'REQUESTED' => 'Avis demande',
+        'REQUESTED' => 'Avis demandé',
         'FAVORABLE' => 'Avis favorable',
-        'UNFAVORABLE' => 'Avis defavorable',
-        default => 'Non demande',
+        'UNFAVORABLE' => 'Avis défavorable',
+        default => 'Non demandé',
+    };
+    $statusLabel = match ($affiliationRequest->status) {
+        'APPROVED' => 'Approuvée',
+        'REJECTED' => 'Rejetée',
+        default => 'En attente',
     };
 @endphp
 <div class="page">
@@ -61,7 +66,7 @@
 
     <article class="panel">
         <div class="toolbar">
-            <strong>Statut: {{ $affiliationRequest->status }}</strong>
+            <strong>Statut: {{ $statusLabel }}</strong>
             <a class="btn btn-outline" href="{{ $sdtMode ? route('sdt.affiliations.index') : route('affiliations.index') }}">Retour</a>
         </div>
         <div class="grid">
@@ -94,7 +99,7 @@
             </div>
             @if($affiliationRequest->employer)
                 <div class="item full">
-                    <p class="label">Employeur cree</p>
+                    <p class="label">Employeur créé</p>
                     <p class="value"><a href="{{ route('employers.show', $affiliationRequest->employer) }}">{{ $affiliationRequest->employer->affiliation_number }} - {{ $affiliationRequest->employer->legal_name }}</a></p>
                 </div>
             @endif
@@ -114,7 +119,7 @@
         </div>
 
         @if(! $sdtOpinionRequested)
-            <p class="value">Aucun avis SDT n'a encore ete demande pour cette affiliation.</p>
+            <p class="value">Aucun avis SDT n'a encore été demandé pour cette affiliation.</p>
             @if(! $sdtMode && $affiliationRequest->status === 'PENDING')
                 <form method="POST" action="{{ route('affiliations.request-sdt-opinion', $affiliationRequest) }}">
                     @csrf
@@ -132,12 +137,12 @@
                     <p class="value">{{ $affiliationRequest->sdt_opinion_requested_at?->format('Y-m-d H:i') ?? '-' }}</p>
                 </div>
                 <div class="item">
-                    <p class="label">Reponse par</p>
+                    <p class="label">Réponse par</p>
                     <p class="value">{{ $affiliationRequest->sdtOpinionGivenBy?->full_name ?? '-' }}</p>
                 </div>
                 @if($affiliationRequest->sdt_opinion_note)
                     <div class="item full">
-                        <p class="label">Avis detaille</p>
+                        <p class="label">Avis détaillé</p>
                         <p class="value">{{ $affiliationRequest->sdt_opinion_note }}</p>
                     </div>
                 @endif
@@ -152,12 +157,12 @@
                     <select id="sdt_opinion_status" name="sdt_opinion_status" required>
                         <option value="">Choisir un avis</option>
                         <option value="FAVORABLE" @selected(old('sdt_opinion_status') === 'FAVORABLE')>Favorable</option>
-                        <option value="UNFAVORABLE" @selected(old('sdt_opinion_status') === 'UNFAVORABLE')>Defavorable</option>
+                        <option value="UNFAVORABLE" @selected(old('sdt_opinion_status') === 'UNFAVORABLE')>Défavorable</option>
                     </select>
                     @error('sdt_opinion_status') <span class="error">{{ $message }}</span> @enderror
                 </div>
                 <div class="field">
-                    <label for="sdt_opinion_note">Avis detaille</label>
+                    <label for="sdt_opinion_note">Avis détaillé</label>
                     <textarea id="sdt_opinion_note" name="sdt_opinion_note" required>{{ old('sdt_opinion_note') }}</textarea>
                     @error('sdt_opinion_note') <span class="error">{{ $message }}</span> @enderror
                 </div>
@@ -173,11 +178,11 @@
                 <form method="POST" action="{{ route('affiliations.approve', $affiliationRequest) }}">
                     @csrf
                     <div class="field">
-                        <label for="affiliation_number">Numero d'affiliation CNSS</label>
+                        <label for="affiliation_number">Numéro d'affiliation CNSS</label>
                         <input id="affiliation_number" name="affiliation_number" value="{{ old('affiliation_number') }}" required maxlength="30">
                         @error('affiliation_number') <span class="error">{{ $message }}</span> @enderror
                     </div>
-                    <button class="btn-primary" type="submit">Approuver et creer employeur</button>
+                    <button class="btn-primary" type="submit">Approuver et créer l'employeur</button>
                 </form>
             </article>
             <article class="panel">

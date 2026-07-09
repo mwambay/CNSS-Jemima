@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Mail\AffiliationDecisionMail;
+use App\Mail\AffiliationTrackingMail;
 use App\Mail\ContributionReminderMail;
 use App\Models\AffiliationRequest;
 use App\Models\Declaration;
@@ -18,6 +19,31 @@ use Tests\TestCase;
 class MailDispatchTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_affiliation_submission_sends_tracking_number_email(): void
+    {
+        Mail::fake();
+
+        $this->post('/affiliation', [
+            'legal_name' => 'Entreprise Suivi',
+            'phone' => '+243990000010',
+            'email' => 'suivi@gmail.com',
+            'legal_form' => 'SARL',
+            'primary_activity' => 'Commerce',
+        ])->assertRedirect();
+
+        $request = AffiliationRequest::query()->where('email', 'suivi@gmail.com')->firstOrFail();
+
+        Mail::assertSent(AffiliationTrackingMail::class, function (AffiliationTrackingMail $mail) use ($request): bool {
+            return $mail->affiliationRequest->is($request)
+                && $mail->hasTo('suivi@gmail.com');
+        });
+
+        $this->assertDatabaseHas('mail_dispatches', [
+            'type' => MailDispatch::AFFILIATION_TRACKING,
+            'recipient_email' => 'suivi@gmail.com',
+        ]);
+    }
 
     public function test_affiliation_approval_sends_email_and_records_dispatch(): void
     {

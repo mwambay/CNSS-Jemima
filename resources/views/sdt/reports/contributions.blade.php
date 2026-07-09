@@ -2,7 +2,7 @@
 
 @section('title', 'Rapport cotisation SDT | CNSS')
 @section('page_title', 'Rapport de cotisation')
-@section('page_subtitle', 'Lecture SDT des montants dus, cotises, penalites et ecarts')
+@section('page_subtitle', 'Lecture SDT des montants dus, cotisés, pénalités et écarts')
 
 @push('styles')
 <style>
@@ -63,22 +63,22 @@
 
         <div class="stats">
             <article class="stat">
-                <p class="stat-label">Declarations</p>
+                <p class="stat-label">Déclarations</p>
                 <p class="stat-value">{{ number_format($summary['declarations'], 0, ',', ' ') }}</p>
                 <p class="stat-note">dans la periode</p>
             </article>
             <article class="stat">
-                <p class="stat-label">Montant du</p>
+                <p class="stat-label">Montant dû</p>
                 <p class="stat-value">{{ number_format($summary['amount_due'], 2, ',', ' ') }} CDF</p>
                 <p class="stat-note">inclut penalites si calculees</p>
             </article>
             <article class="stat">
-                <p class="stat-label">Montant cotise</p>
+                <p class="stat-label">Montant cotisé</p>
                 <p class="stat-value">{{ number_format($summary['contributed'], 2, ',', ' ') }} CDF</p>
                 <p class="stat-note">montants declares comme verses</p>
             </article>
             <article class="stat {{ abs($difference) >= 0.01 ? 'hot' : '' }}">
-                <p class="stat-label">Ecart</p>
+                <p class="stat-label">Écart</p>
                 <p class="stat-value">{{ number_format($difference, 2, ',', ' ') }} CDF</p>
                 <p class="stat-note">{{ $difference < 0 ? 'insuffisance globale' : 'solde positif ou nul' }}</p>
             </article>
@@ -90,25 +90,25 @@
             <article class="stat {{ $summary['anomalies'] > 0 || $summary['overdue'] > 0 ? 'hot' : '' }}">
                 <p class="stat-label">Alertes</p>
                 <p class="stat-value">{{ number_format($summary['anomalies'] + $summary['overdue'], 0, ',', ' ') }}</p>
-                <p class="stat-note">{{ $summary['anomalies'] }} ecart(s), {{ $summary['overdue'] }} retard(s)</p>
+                <p class="stat-note">{{ $summary['anomalies'] }} écart(s), {{ $summary['overdue'] }} retard(s)</p>
             </article>
         </div>
     </section>
 
     <section class="panel">
         <div class="panel-head">
-            <h2>Detail des declarations</h2>
+            <h2>Détail des déclarations</h2>
         </div>
         <div class="table-wrap">
             <table>
                 <thead>
                 <tr>
                     <th>Employeur</th>
-                    <th>Periode</th>
+                    <th>Période</th>
                     <th>Statut</th>
                     <th>Du</th>
                     <th>Cotise</th>
-                    <th>Ecart</th>
+                    <th>Écart</th>
                     <th>Penalite</th>
                     <th>Echeance</th>
                 </tr>
@@ -122,6 +122,12 @@
                         $isOverdue = in_array($declaration->status, ['DRAFT', 'SUBMITTED'], true)
                             && $declaration->due_date
                             && $declaration->due_date->isPast();
+                        $statusLabel = match ($declaration->status) {
+                            'SUBMITTED' => 'Soumise',
+                            'VALIDATED' => 'Validée',
+                            'REJECTED' => 'Rejetée',
+                            default => 'Brouillon',
+                        };
                     @endphp
                     <tr>
                         <td>
@@ -129,7 +135,7 @@
                             <div>{{ $declaration->employer?->affiliation_number ?? '-' }}</div>
                         </td>
                         <td>{{ str_pad((string) $declaration->period_month, 2, '0', STR_PAD_LEFT) }}/{{ $declaration->period_year }}</td>
-                        <td><span class="badge {{ $isOverdue ? 'badge-hot' : '' }}">{{ $isOverdue ? 'RETARD' : $declaration->status }}</span></td>
+                        <td><span class="badge {{ $isOverdue ? 'badge-hot' : '' }}">{{ $isOverdue ? 'En retard' : $statusLabel }}</span></td>
                         <td>{{ number_format($due, 2, ',', ' ') }} CDF</td>
                         <td>{{ number_format($paid, 2, ',', ' ') }} CDF</td>
                         <td><span class="badge {{ abs($rowDifference) >= 0.01 ? 'badge-warn' : '' }}">{{ number_format($rowDifference, 2, ',', ' ') }} CDF</span></td>
@@ -137,7 +143,7 @@
                         <td>{{ $declaration->due_date?->format('Y-m-d') ?? '-' }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="8">Aucune declaration pour cette periode.</td></tr>
+                    <tr><td colspan="8">Aucune déclaration pour cette période.</td></tr>
                 @endforelse
                 </tbody>
             </table>

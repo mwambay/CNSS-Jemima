@@ -35,6 +35,8 @@ class AffiliationRequestController extends Controller
             'status' => 'PENDING',
         ]);
 
+        $this->mailDispatchService->sendAffiliationTracking($affiliationRequest);
+
         return redirect()->route('affiliation.submitted', $affiliationRequest);
     }
 

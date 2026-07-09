@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Mail\AffiliationDecisionMail;
+use App\Mail\AffiliationTrackingMail;
 use App\Mail\ContributionReminderMail;
 use App\Models\AffiliationRequest;
 use App\Models\Declaration;
@@ -14,6 +15,28 @@ use Throwable;
 
 class MailDispatchService
 {
+    public function sendAffiliationTracking(AffiliationRequest $affiliationRequest): bool
+    {
+        if (! $affiliationRequest->email || $this->alreadySent(MailDispatch::AFFILIATION_TRACKING, $affiliationRequest)) {
+            return false;
+        }
+
+        try {
+            Mail::to($affiliationRequest->email)->send(new AffiliationTrackingMail($affiliationRequest));
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return false;
+        }
+
+        $this->record(MailDispatch::AFFILIATION_TRACKING, $affiliationRequest, $affiliationRequest->email, $this->recipientName($affiliationRequest), [
+            'tracking_number' => $affiliationRequest->tracking_number,
+            'status' => $affiliationRequest->status,
+        ]);
+
+        return true;
+    }
+
     public function sendAffiliationDecision(AffiliationRequest $affiliationRequest): bool
     {
         if (! $affiliationRequest->email || ! in_array($affiliationRequest->status, ['APPROVED', 'REJECTED'], true)) {

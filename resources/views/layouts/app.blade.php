@@ -232,18 +232,18 @@
             @endphp
             <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Tableau de bord</a>
             @if($isSdt)
-                <a class="nav-link {{ request()->routeIs('sdt.affiliations.*') ? 'active' : '' }}" href="{{ route('sdt.affiliations.index') }}">Avis affiliations</a>
+                <a class="nav-link {{ request()->routeIs('sdt.affiliations.*') ? 'active' : '' }}" href="{{ route('sdt.affiliations.index') }}">Affiliations en attente</a>
                 <a class="nav-link {{ request()->routeIs('sdt.reports.contributions') ? 'active' : '' }}" href="{{ route('sdt.reports.contributions') }}">Rapport cotisation</a>
-                <a class="nav-link {{ request()->routeIs('sdt.reports.activity') ? 'active' : '' }}" href="{{ route('sdt.reports.activity') }}">Rapport activite</a>
+                <a class="nav-link {{ request()->routeIs('sdt.reports.activity') ? 'active' : '' }}" href="{{ route('sdt.reports.activity') }}">Rapport activité</a>
             @endif
             @if($canManageBusiness)
                 <a class="nav-link {{ request()->routeIs('affiliations.*') ? 'active' : '' }}" href="{{ route('affiliations.index') }}">Affiliations</a>
                 <a class="nav-link {{ request()->routeIs('employers.*') ? 'active' : '' }}" href="{{ route('employers.interface') }}">Employeurs</a>
                 <a class="nav-link {{ request()->routeIs('workers.interface') ? 'active' : '' }}" href="{{ route('workers.interface') }}">Travailleurs</a>
-                <a class="nav-link {{ request()->routeIs('declarations.*') ? 'active' : '' }}" href="{{ route('declarations.interface') }}">Declarations</a>
+                <a class="nav-link {{ request()->routeIs('declarations.*') ? 'active' : '' }}" href="{{ route('declarations.interface') }}">Déclarations</a>
             @endif
             @if($isAdmin)
-                <a class="nav-link {{ request()->routeIs('contribution-rates.*') ? 'active' : '' }}" href="{{ route('contribution-rates.index') }}">Parametres cotisations</a>
+                <a class="nav-link {{ request()->routeIs('contribution-rates.*') ? 'active' : '' }}" href="{{ route('contribution-rates.index') }}">Paramètres cotisations</a>
                 <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">Utilisateurs</a>
             @endif
         </nav>

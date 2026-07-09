@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Rapport activite SDT | CNSS')
-@section('page_title', 'Rapport d activite')
-@section('page_subtitle', 'Lecture SDT des mouvements et volumes operationnels')
+@section('title', 'Rapport activité SDT | CNSS')
+@section('page_title', 'Rapport d activité')
+@section('page_subtitle', 'Lecture SDT des mouvements et volumes opérationnels')
 
 @push('styles')
 <style>
@@ -39,7 +39,7 @@
 <div class="report">
     <section class="panel">
         <div class="panel-head">
-            <h2>Synthese activite</h2>
+            <h2>Synthèse activité</h2>
             <form class="filters" method="GET" action="{{ route('sdt.reports.activity') }}">
                 <label>Du
                     <input type="date" name="from" value="{{ $filters['from'] }}">
@@ -63,24 +63,24 @@
                 <p class="metric-note">rattachements actifs</p>
             </article>
             <article class="metric attention">
-                <p class="metric-label">Affiliations recues</p>
+                <p class="metric-label">Affiliations reçues</p>
                 <p class="metric-value">{{ number_format($summary['affiliations'], 0, ',', ' ') }}</p>
                 <p class="metric-note">{{ $summary['affiliations_pending'] }} en attente</p>
             </article>
             <article class="metric">
-                <p class="metric-label">Affiliations approuvees</p>
+                <p class="metric-label">Affiliations approuvées</p>
                 <p class="metric-value">{{ number_format($summary['affiliations_approved'], 0, ',', ' ') }}</p>
-                <p class="metric-note">{{ $summary['affiliations_rejected'] }} rejetee(s)</p>
+                <p class="metric-note">{{ $summary['affiliations_rejected'] }} rejetée(s)</p>
             </article>
             <article class="metric {{ $summary['sdt_opinions_waiting'] > 0 ? 'attention' : '' }}">
-                <p class="metric-label">Avis SDT demandes</p>
+                <p class="metric-label">Avis SDT demandés</p>
                 <p class="metric-value">{{ number_format($summary['sdt_opinions_requested'], 0, ',', ' ') }}</p>
-                <p class="metric-note">{{ $summary['sdt_opinions_waiting'] }} en attente de reponse</p>
+                <p class="metric-note">{{ $summary['sdt_opinions_waiting'] }} en attente de réponse</p>
             </article>
             <article class="metric">
-                <p class="metric-label">Declarations creees</p>
+                <p class="metric-label">Déclarations créées</p>
                 <p class="metric-value">{{ number_format($summary['declarations'], 0, ',', ' ') }}</p>
-                <p class="metric-note">sur la periode filtree</p>
+                <p class="metric-note">sur la période filtrée</p>
             </article>
             <article class="metric attention">
                 <p class="metric-label">File active</p>
@@ -88,9 +88,9 @@
                 <p class="metric-note">{{ $summary['declarations_draft'] }} brouillon(s), {{ $summary['declarations_submitted'] }} soumis</p>
             </article>
             <article class="metric">
-                <p class="metric-label">Decisions declarations</p>
+                <p class="metric-label">Décisions déclarations</p>
                 <p class="metric-value">{{ number_format($summary['declarations_validated'] + $summary['declarations_rejected'], 0, ',', ' ') }}</p>
-                <p class="metric-note">{{ $summary['declarations_validated'] }} validee(s), {{ $summary['declarations_rejected'] }} rejetee(s)</p>
+                <p class="metric-note">{{ $summary['declarations_validated'] }} validée(s), {{ $summary['declarations_rejected'] }} rejetée(s)</p>
             </article>
         </div>
     </section>
@@ -98,34 +98,49 @@
     <div class="split">
         <section class="panel">
             <div class="panel-head">
-                <h2>Dernieres affiliations</h2>
+                <h2>Activité des affiliations</h2>
             </div>
             <div class="list">
                 @forelse($recentAffiliations as $request)
+                    @php
+                        $requestStatusLabel = match ($request->status) {
+                            'APPROVED' => 'Approuvée',
+                            'REJECTED' => 'Rejetée',
+                            default => 'En attente',
+                        };
+                    @endphp
                     <div class="row">
                         <strong>{{ $request->legal_name ?: ($request->physical_employer_name ?: 'Employeur') }}</strong>
                         <span>{{ $request->tracking_number }} - {{ $request->created_at?->format('Y-m-d H:i') }}</span>
-                        <span class="badge {{ $request->status === 'REJECTED' ? 'badge-hot' : ($request->status === 'PENDING' ? 'badge-warn' : '') }}">{{ $request->status }}</span>
+                        <span class="badge {{ $request->status === 'REJECTED' ? 'badge-hot' : ($request->status === 'PENDING' ? 'badge-warn' : '') }}">{{ $requestStatusLabel }}</span>
                     </div>
                 @empty
-                    <div class="row"><span>Aucune affiliation dans la periode.</span></div>
+                    <div class="row"><span>Aucune affiliation dans la période.</span></div>
                 @endforelse
             </div>
         </section>
 
         <section class="panel">
             <div class="panel-head">
-                <h2>Dernieres declarations</h2>
+                <h2>Activité des déclarations</h2>
             </div>
             <div class="list">
                 @forelse($recentDeclarations as $declaration)
+                    @php
+                        $declarationStatusLabel = match ($declaration->status) {
+                            'SUBMITTED' => 'Soumise',
+                            'VALIDATED' => 'Validée',
+                            'REJECTED' => 'Rejetée',
+                            default => 'Brouillon',
+                        };
+                    @endphp
                     <div class="row">
                         <strong>{{ $declaration->employer?->legal_name ?? 'Employeur' }}</strong>
-                        <span>Declaration {{ str_pad((string) $declaration->period_month, 2, '0', STR_PAD_LEFT) }}/{{ $declaration->period_year }} - {{ $declaration->created_at?->format('Y-m-d H:i') }}</span>
-                        <span class="badge {{ in_array($declaration->status, ['DRAFT', 'SUBMITTED'], true) ? 'badge-warn' : ($declaration->status === 'REJECTED' ? 'badge-hot' : '') }}">{{ $declaration->status }}</span>
+                        <span>Déclaration {{ str_pad((string) $declaration->period_month, 2, '0', STR_PAD_LEFT) }}/{{ $declaration->period_year }} - {{ $declaration->created_at?->format('Y-m-d H:i') }}</span>
+                        <span class="badge {{ in_array($declaration->status, ['DRAFT', 'SUBMITTED'], true) ? 'badge-warn' : ($declaration->status === 'REJECTED' ? 'badge-hot' : '') }}">{{ $declarationStatusLabel }}</span>
                     </div>
                 @empty
-                    <div class="row"><span>Aucune declaration dans la periode.</span></div>
+                    <div class="row"><span>Aucune déclaration dans la période.</span></div>
                 @endforelse
             </div>
         </section>

@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Affiliations SDT | CNSS')
-@section('page_title', 'Affiliations a examiner')
-@section('page_subtitle', 'Avis consultatif SDT sur demande de l Agent SES')
+@section('title', 'Affiliations en attente | CNSS')
+@section('page_title', 'Affiliations en attente')
+@section('page_subtitle', 'Consultation SDT sur demande de l Agent SES')
 
 @push('styles')
 <style>
@@ -29,7 +29,7 @@
     <div class="intro">
         <div>
             <h2>Demandes transmises au SDT</h2>
-            <p>Le SDT donne un avis, mais la decision finale reste chez l Agent SES.</p>
+            <p>Le SDT donne un avis, mais la décision finale reste chez l Agent SES.</p>
         </div>
     </div>
 
@@ -39,7 +39,7 @@
             <tr>
                 <th>Suivi</th>
                 <th>Employeur</th>
-                <th>Activite</th>
+                <th>Activité</th>
                 <th>Demande par</th>
                 <th>Avis</th>
                 <th>Date demande</th>
@@ -52,8 +52,8 @@
                     $opinion = $request->sdt_opinion_status ?? 'REQUESTED';
                     $opinionLabel = match ($opinion) {
                         'FAVORABLE' => 'Favorable',
-                        'UNFAVORABLE' => 'Defavorable',
-                        default => 'A traiter',
+                        'UNFAVORABLE' => 'Défavorable',
+                        default => 'À traiter',
                     };
                 @endphp
                 <tr>

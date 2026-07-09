@@ -17,7 +17,7 @@
 <main class="page">
     <section class="panel">
         <h1>Demande d'affiliation soumise</h1>
-        <p>Votre demande a ete enregistree. Conservez ce numero de suivi pour les echanges avec la CNSS.</p>
+        <p>Votre demande a été enregistrée. Conservez ce numéro de suivi pour les échanges avec la CNSS.</p>
         <span class="tracking">{{ $affiliationRequest->tracking_number }}</span>
     </section>
 </main>

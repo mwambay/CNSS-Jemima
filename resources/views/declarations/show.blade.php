@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Declaration | CNSS')
-@section('page_title', 'Declaration')
-@section('page_subtitle', 'Detail et lignes de declaration')
+@section('title', 'Déclaration | CNSS')
+@section('page_title', 'Déclaration')
+@section('page_subtitle', 'Détail et lignes de déclaration')
 
 @push('styles')
 <style>
@@ -327,10 +327,10 @@
     @if(!$canManageDeclarations)
         <article class="panel">
             <div class="toolbar">
-                <h2>Declaration #{{ $declaration->id }}</h2>
-                <a href="{{ route('declarations.interface') }}" class="btn btn-outline">Retour a la liste</a>
+                <h2>Déclaration #{{ $declaration->id }}</h2>
+                <a href="{{ route('declarations.interface') }}" class="btn btn-outline">Retour à la liste</a>
             </div>
-            <div class="notice">Acces restreint: vous n'avez pas les droits ADMIN pour gerer les declarations.</div>
+            <div class="notice">Accès restreint: vous n'avez pas les droits ADMIN pour gérer les déclarations.</div>
         </article>
     @else
         <section id="contribution-alert-banner" class="contribution-alert-banner is-hidden" role="alert" aria-live="polite">
@@ -343,9 +343,9 @@
 
         <article class="panel">
             <div class="toolbar">
-                <h2 id="details-title">Declaration</h2>
+                <h2 id="details-title">Déclaration</h2>
                 <div class="toolbar-right actions">
-                    <a href="{{ route('declarations.interface') }}" class="btn btn-outline">Retour a la liste</a>
+                    <a href="{{ route('declarations.interface') }}" class="btn btn-outline">Retour à la liste</a>
                     <button id="record-global-contribution-btn" class="btn btn-primary" type="button">Calculer le montant du</button>
                     <button id="use-detailed-entry-btn" class="btn btn-outline is-hidden" type="button">Revenir au detail par travailleur</button>
                     <button id="recalculate-declaration-btn" class="btn btn-outline" type="button">Recalculer cotisations</button>
@@ -361,7 +361,7 @@
                     <span class="meta-value" id="meta-employer">-</span>
                 </div>
                 <div class="meta-card">
-                    <span class="meta-label">Periode</span>
+                    <span class="meta-label">Période</span>
                     <span class="meta-value" id="meta-period">-</span>
                 </div>
                 <div class="meta-card">
@@ -381,11 +381,11 @@
                     <span class="meta-value" id="meta-total-salary">0</span>
                 </div>
                 <div class="meta-card">
-                    <span class="meta-label">Montant cotise</span>
+                    <span class="meta-label">Montant cotisé</span>
                     <span class="meta-value" id="meta-total-contribution">0</span>
                 </div>
                 <div class="meta-card">
-                    <span class="meta-label">Montant du</span>
+                    <span class="meta-label">Montant dû</span>
                     <span class="meta-value" id="meta-amount-due">-</span>
                 </div>
                 <div class="meta-card">
@@ -405,7 +405,7 @@
                     <span class="meta-value" id="meta-total-payable">-</span>
                 </div>
                 <div class="meta-card">
-                    <span class="meta-label">Coherence cotisation</span>
+                    <span class="meta-label">Cohérence cotisation</span>
                     <span class="meta-value" id="meta-contribution-check">-</span>
                 </div>
                 <div class="meta-card">
@@ -422,7 +422,7 @@
 
         <article class="panel">
             <div class="toolbar">
-                <h2>Lignes de declaration</h2>
+                <h2>Lignes de déclaration</h2>
                 <div class="toolbar-right">
                     <button id="toggle-line-form-btn" class="btn btn-primary" type="button">Ajouter ligne</button>
                 </div>
@@ -496,7 +496,7 @@
                     <div class="calculation-item"><span class="meta-label">Part employeur</span><strong id="preview-employer-rate">-</strong></div>
                     <div class="calculation-item"><span class="meta-label">Part travailleur</span><strong id="preview-worker-rate">-</strong></div>
                     <div class="calculation-item"><span class="meta-label">Taux total</span><strong id="preview-total-rate">-</strong></div>
-                    <div class="calculation-item total"><span class="meta-label">Montant du a la CNSS</span><strong id="preview-amount-due">-</strong></div>
+                    <div class="calculation-item total"><span class="meta-label">Montant dû à la CNSS</span><strong id="preview-amount-due">-</strong></div>
                     <div class="calculation-item"><span class="meta-label">Echeance legale</span><strong id="preview-due-date">-</strong></div>
                     <div class="calculation-item"><span class="meta-label">Majoration par jour</span><strong id="preview-late-rate">-</strong></div>
                     <div class="calculation-item"><span class="meta-label">Jours de retard</span><strong id="preview-late-days">-</strong></div>
@@ -508,7 +508,7 @@
                     <input class="control" id="global_contribution_date" type="date" max="{{ now()->toDateString() }}" required>
                 </div>
                 <div class="field" style="margin-top:.8rem;">
-                    <label for="global_contributed_amount">Montant cotise par l'employeur (CDF)</label>
+                    <label for="global_contributed_amount">Montant cotisé par l'employeur (CDF)</label>
                     <input class="control" id="global_contributed_amount" type="number" min="0" step="0.01" required>
                 </div>
                 <div id="global-contribution-check" class="contribution-check warning is-hidden"></div>
@@ -623,17 +623,24 @@
         return 'badge badge-draft';
     }
 
+    function statusLabel(status) {
+        if (status === 'SUBMITTED') return 'Soumise';
+        if (status === 'VALIDATED') return 'Validée';
+        if (status === 'REJECTED') return 'Rejetée';
+        return 'Brouillon';
+    }
+
     function renderDeclaration() {
         const declaration = state.declaration;
         if (!declaration) {
             return;
         }
 
-        els.detailsTitle.textContent = `Declaration ${String(declaration.period_month).padStart(2, '0')}/${declaration.period_year} - ${declaration.employer_name || '-'}`;
+        els.detailsTitle.textContent = `Déclaration ${String(declaration.period_month).padStart(2, '0')}/${declaration.period_year} - ${declaration.employer_name || '-'}`;
         els.metaEmployer.textContent = declaration.employer_name || '-';
         els.metaPeriod.textContent = `${String(declaration.period_month).padStart(2, '0')}/${declaration.period_year}`;
         els.metaStatus.className = statusBadgeClass(declaration.status);
-        els.metaStatus.textContent = declaration.status || '-';
+        els.metaStatus.textContent = statusLabel(declaration.status);
         const isGlobal = declaration.contribution_entry_mode === 'GLOBAL';
         els.metaEntryMode.className = `badge ${isGlobal ? 'mode-global' : 'badge-draft'}`;
         els.metaEntryMode.textContent = isGlobal ? 'GLOBAL' : 'DETAILLE';
@@ -665,10 +672,10 @@
                 const isInsufficient = declaration.global_contribution_status === 'INSUFFISANT';
                 els.contributionAlertTitle.textContent = isInsufficient
                     ? 'Alerte: cotisation insuffisante'
-                    : 'Alerte: cotisation superieure au montant du';
+                    : 'Alerte: cotisation supérieure au montant dû';
                 els.contributionAlertMessage.textContent = isInsufficient
-                    ? `L'employeur a cotise ${formatAmount(declaration.global_contribution_amount)} CDF sur un total exigible de ${formatAmount(declaration.global_total_payable ?? declaration.global_amount_due)} CDF, dont ${formatAmount(declaration.global_late_penalty_amount)} CDF de majoration. Il manque ${formatAmount(Math.abs(difference))} CDF.`
-                    : `L'employeur a cotise ${formatAmount(declaration.global_contribution_amount)} CDF pour un total exigible de ${formatAmount(declaration.global_total_payable ?? declaration.global_amount_due)} CDF. Le depassement est de ${formatAmount(Math.abs(difference))} CDF.`;
+                    ? `L'employeur a cotisé ${formatAmount(declaration.global_contribution_amount)} CDF sur un total exigible de ${formatAmount(declaration.global_total_payable ?? declaration.global_amount_due)} CDF, dont ${formatAmount(declaration.global_late_penalty_amount)} CDF de majoration. Il manque ${formatAmount(Math.abs(difference))} CDF.`
+                    : `L'employeur a cotisé ${formatAmount(declaration.global_contribution_amount)} CDF pour un total exigible de ${formatAmount(declaration.global_total_payable ?? declaration.global_amount_due)} CDF. Le dépassement est de ${formatAmount(Math.abs(difference))} CDF.`;
                 els.contributionAlertBanner.classList.remove('is-hidden');
             }
         } else {
@@ -692,13 +699,13 @@
         els.globalModeNotice.classList.toggle('is-hidden', !isGlobal);
 
         if (isGlobal) {
-            const status = state.declaration.global_contribution_status || 'NON VERIFIE';
-            els.linesTableBody.innerHTML = `<tr><td colspan="10" class="empty">Montant du: ${escapeHtml(formatAmount(state.declaration.global_amount_due))} CDF | Majoration: ${escapeHtml(formatAmount(state.declaration.global_late_penalty_amount))} CDF | Total exigible: ${escapeHtml(formatAmount(state.declaration.global_total_payable ?? state.declaration.global_amount_due))} CDF | Montant cotise: ${escapeHtml(formatAmount(state.declaration.global_contribution_amount))} CDF | ${escapeHtml(status)}</td></tr>`;
+            const status = state.declaration.global_contribution_status || 'NON VÉRIFIÉ';
+            els.linesTableBody.innerHTML = `<tr><td colspan="10" class="empty">Montant dû: ${escapeHtml(formatAmount(state.declaration.global_amount_due))} CDF | Majoration: ${escapeHtml(formatAmount(state.declaration.global_late_penalty_amount))} CDF | Total exigible: ${escapeHtml(formatAmount(state.declaration.global_total_payable ?? state.declaration.global_amount_due))} CDF | Montant cotisé: ${escapeHtml(formatAmount(state.declaration.global_contribution_amount))} CDF | ${escapeHtml(status)}</td></tr>`;
             return;
         }
 
         if (lines.length === 0) {
-            els.linesTableBody.innerHTML = '<tr><td colspan="10" class="empty">Aucune ligne dans cette declaration.</td></tr>';
+            els.linesTableBody.innerHTML = '<tr><td colspan="10" class="empty">Aucune ligne dans cette déclaration.</td></tr>';
             return;
         }
 
@@ -788,14 +795,14 @@
     }
 
     async function loadDeclaration() {
-        setDeclarationStatus('Chargement de la declaration...');
+        setDeclarationStatus('Chargement de la déclaration...');
 
         const response = await fetch(`/api/declarations/${declarationId}`, {
             headers: { 'Accept': 'application/json' },
         });
 
         if (!response.ok) {
-            throw new Error('Impossible de charger cette declaration.');
+                throw new Error('Impossible de charger cette déclaration.');
         }
 
         state.declaration = await response.json();
@@ -805,7 +812,7 @@
         renderLines();
         updateWorkflowButtons();
 
-        setDeclarationStatus('Declaration chargee.', 'ok');
+        setDeclarationStatus('Déclaration chargée.', 'ok');
     }
 
     async function saveLine() {
@@ -848,7 +855,7 @@
             updateWorkflowButtons();
             clearLineForm();
             showLinesTable();
-            setLineStatus('Ligne enregistree.', 'ok');
+            setLineStatus('Ligne enregistrée.', 'ok');
         } catch (error) {
             setLineStatus(error.message || 'Erreur enregistrement ligne.', 'error');
         } finally {
@@ -888,7 +895,7 @@
 
         const endpoint = `/api/declarations/${state.declaration.id}/${action}`;
         const payload = action === 'reject'
-            ? { validation_message: 'Declaration rejetee par controle.' }
+            ? { validation_message: 'Déclaration rejetée par contrôle.' }
             : {};
 
         const response = await fetch(endpoint, {
@@ -928,14 +935,14 @@
             });
 
             if (!response.ok) {
-                throw new Error('Recalcul impossible pour cette declaration.');
+                throw new Error('Recalcul impossible pour cette déclaration.');
             }
 
             state.declaration = await response.json();
             renderDeclaration();
             renderLines();
             updateWorkflowButtons();
-            setLineStatus('Cotisations recalculees.', 'ok');
+            setLineStatus('Cotisations recalculées.', 'ok');
         } catch (error) {
             setLineStatus(error.message || 'Erreur lors du recalcul.', 'error');
             updateWorkflowButtons();
@@ -1012,9 +1019,9 @@
         if (Math.abs(difference) < 0.01) {
             els.globalContributionCheck.textContent = 'Cotisation conforme au total exigible.';
         } else if (difference < 0) {
-            els.globalContributionCheck.textContent = `Cotisation insuffisante. Ecart: ${formatAmount(Math.abs(difference))} CDF.`;
+            els.globalContributionCheck.textContent = `Cotisation insuffisante. Écart: ${formatAmount(Math.abs(difference))} CDF.`;
         } else {
-            els.globalContributionCheck.textContent = `Cotisation superieure au montant du. Ecart: ${formatAmount(difference)} CDF.`;
+            els.globalContributionCheck.textContent = `Cotisation supérieure au montant dû. Écart: ${formatAmount(difference)} CDF.`;
         }
 
         els.saveGlobalContribution.disabled = contributedAmount < 0;
@@ -1058,7 +1065,7 @@
             els.globalContributedAmount.dataset.dueDate = calculation.due_date;
             els.globalContributedAmount.dataset.latePenaltyRate = String(calculation.late_penalty_daily_rate);
             updateLatePenaltyPreview();
-            setStatus(els.globalContributionStatus, 'Saisissez le montant effectivement cotise. Un ecart sera signale sans bloquer l enregistrement.', 'ok');
+            setStatus(els.globalContributionStatus, 'Saisissez le montant effectivement cotisé. Un écart sera signalé sans bloquer l enregistrement.', 'ok');
         } catch (error) {
             setStatus(els.globalContributionStatus, error.message || 'Erreur de calcul.', 'error');
         }
@@ -1101,8 +1108,8 @@
             const status = state.declaration.global_contribution_status;
             const difference = Number(state.declaration.global_contribution_difference || 0);
             const message = status === 'CONFORME'
-                ? 'Cotisation enregistree: montant conforme.'
-                : `Cotisation enregistree avec un ecart de ${formatAmount(Math.abs(difference))} CDF (${status}).`;
+                ? 'Cotisation enregistrée: montant conforme.'
+                : `Cotisation enregistrée avec un écart de ${formatAmount(Math.abs(difference))} CDF (${status}).`;
             setDeclarationStatus(message, status === 'CONFORME' ? 'ok' : 'error');
         } catch (error) {
             setStatus(els.globalContributionStatus, error.message || 'Erreur d enregistrement.', 'error');
@@ -1125,7 +1132,7 @@
         });
 
         if (!response.ok) {
-            setDeclarationStatus('Retour au mode detaille impossible.', 'error');
+            setDeclarationStatus('Retour au mode détaillé impossible.', 'error');
             return;
         }
 
@@ -1133,7 +1140,7 @@
         renderDeclaration();
         renderLines();
         updateWorkflowButtons();
-        setDeclarationStatus('Mode detaille active.', 'ok');
+        setDeclarationStatus('Mode détaillé activé.', 'ok');
     }
 
     els.saveLineBtn.addEventListener('click', saveLine);

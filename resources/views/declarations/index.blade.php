@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Declarations | CNSS')
-@section('page_title', 'Declarations')
-@section('page_subtitle', 'Gestion des declarations mensuelles')
+@section('title', 'Déclarations | CNSS')
+@section('page_title', 'Déclarations')
+@section('page_subtitle', 'Gestion des déclarations mensuelles')
 
 @push('styles')
 <style>
@@ -392,21 +392,21 @@
 <div class="declaration-page">
     @if(!$canManageDeclarations)
         <article class="panel">
-            <div class="notice">Acces restreint: vous n'avez pas les droits ADMIN pour gerer les declarations.</div>
+            <div class="notice">Accès restreint: vous n'avez pas les droits ADMIN pour gérer les déclarations.</div>
         </article>
     @else
         <section class="overview-panel" aria-labelledby="overview-title">
             <h2 id="overview-title">Vue d'ensemble</h2>
             <div class="overview-grid">
                 <div class="overview-item">
-                    <span class="overview-label">Total des declarations</span>
+                    <span class="overview-label">Total des déclarations</span>
                     <div class="overview-value-row">
                         <strong class="overview-value" id="overview-declarations">0</strong>
-                        <span class="overview-note" id="overview-validated">0 validee</span>
+                        <span class="overview-note" id="overview-validated">0 validée</span>
                     </div>
                 </div>
                 <div class="overview-item">
-                    <span class="overview-label">Sommes cotisees</span>
+                    <span class="overview-label">Sommes cotisées</span>
                     <div class="overview-value-row">
                         <strong class="overview-value" id="overview-contributed">0,00 CDF</strong>
                     </div>
@@ -429,10 +429,10 @@
 
         <article class="panel">
             <div class="toolbar">
-                <h2>Liste des declarations</h2>
+                <h2>Liste des déclarations</h2>
                 <div class="toolbar-right">
-                    <span class="kpi" id="declaration-count">0 declaration</span>
-                    <button id="toggle-declaration-form-btn" class="btn btn-primary" type="button">Nouvelle declaration</button>
+                    <span class="kpi" id="declaration-count">0 déclaration</span>
+                    <button id="toggle-declaration-form-btn" class="btn btn-primary" type="button">Nouvelle déclaration</button>
                 </div>
             </div>
 
@@ -443,7 +443,7 @@
                         <select class="control" id="employer_id" name="employer_id" required></select>
                     </div>
                     <div class="field">
-                        <label for="period_year">Annee</label>
+                        <label for="period_year">Année</label>
                         <input class="control" id="period_year" name="period_year" type="number" min="2000" max="2100" required>
                     </div>
                     <div class="field">
@@ -451,20 +451,20 @@
                         <input class="control" id="period_month" name="period_month" type="number" min="1" max="12" required>
                     </div>
                     <div class="field">
-                        <label for="due_date">Echeance legale (15 du mois suivant)</label>
+                        <label for="due_date">Échéance légale (15 du mois suivant)</label>
                         <input class="control" id="due_date" name="due_date" type="date" readonly>
                     </div>
                 </div>
                 <div class="actions" style="margin-top:.8rem;">
-                    <button id="save-declaration-btn" class="btn btn-primary" type="submit">Creer</button>
+                    <button id="save-declaration-btn" class="btn btn-primary" type="submit">Créer</button>
                     <button id="cancel-declaration-form-btn" class="btn btn-outline" type="button">Annuler</button>
                 </div>
             </form>
 
-            <div class="filter-bar" aria-label="Filtres des declarations">
+            <div class="filter-bar" aria-label="Filtres des déclarations">
                 <div class="filter-field filter-field-search">
                     <label for="declaration-search">Recherche</label>
-                    <input class="control" id="declaration-search" type="search" placeholder="Employeur ou periode (ex. 04/2026)">
+                    <input class="control" id="declaration-search" type="search" placeholder="Employeur ou période (ex. 04/2026)">
                 </div>
                 <div class="filter-field">
                     <label for="declaration-status-filter">Statut</label>
@@ -472,14 +472,14 @@
                         <option value="">Tous les statuts</option>
                         <option value="DRAFT">Brouillon</option>
                         <option value="SUBMITTED">Soumise</option>
-                        <option value="VALIDATED">Validee</option>
-                        <option value="REJECTED">Rejetee</option>
+                        <option value="VALIDATED">Validée</option>
+                        <option value="REJECTED">Rejetée</option>
                     </select>
                 </div>
                 <div class="filter-field">
-                    <label for="declaration-year-filter">Annee</label>
+                    <label for="declaration-year-filter">Année</label>
                     <select class="control" id="declaration-year-filter">
-                        <option value="">Toutes les annees</option>
+                        <option value="">Toutes les années</option>
                     </select>
                 </div>
                 <div class="filter-field">
@@ -487,20 +487,20 @@
                     <select class="control" id="declaration-month-filter">
                         <option value="">Tous les mois</option>
                         <option value="1">Janvier</option>
-                        <option value="2">Fevrier</option>
+                        <option value="2">Février</option>
                         <option value="3">Mars</option>
                         <option value="4">Avril</option>
                         <option value="5">Mai</option>
                         <option value="6">Juin</option>
                         <option value="7">Juillet</option>
-                        <option value="8">Aout</option>
+                        <option value="8">Août</option>
                         <option value="9">Septembre</option>
                         <option value="10">Octobre</option>
                         <option value="11">Novembre</option>
-                        <option value="12">Decembre</option>
+                        <option value="12">Décembre</option>
                     </select>
                 </div>
-                <button class="btn btn-outline" id="reset-declaration-filters" type="button">Reinitialiser</button>
+                <button class="btn btn-outline" id="reset-declaration-filters" type="button">Réinitialiser</button>
             </div>
 
             <p id="declaration-status" class="status-text"></p>
@@ -510,7 +510,7 @@
                     <thead>
                     <tr>
                         <th>Employeur</th>
-                        <th>Periode</th>
+                        <th>Période</th>
                         <th>Statut</th>
                         <th>Masse salariale</th>
                         <th>Total contribution</th>
@@ -594,7 +594,7 @@
         const visible = !els.declarationForm.classList.contains('is-hidden');
         const shouldShow = forceVisible === null ? !visible : forceVisible;
         els.declarationForm.classList.toggle('is-hidden', !shouldShow);
-        els.toggleDeclarationFormBtn.textContent = shouldShow ? 'Fermer' : 'Nouvelle declaration';
+        els.toggleDeclarationFormBtn.textContent = shouldShow ? 'Fermer' : 'Nouvelle déclaration';
     }
 
     function statusBadgeClass(status) {
@@ -602,6 +602,13 @@
         if (status === 'VALIDATED') return 'badge badge-validated';
         if (status === 'REJECTED') return 'badge badge-rejected';
         return 'badge badge-draft';
+    }
+
+    function statusLabel(status) {
+        if (status === 'SUBMITTED') return 'Soumise';
+        if (status === 'VALIDATED') return 'Validée';
+        if (status === 'REJECTED') return 'Rejetée';
+        return 'Brouillon';
     }
 
     function formatCurrency(value) {
@@ -629,7 +636,7 @@
         );
 
         els.overviewDeclarations.textContent = String(declarations.length);
-        els.overviewValidated.textContent = `${validatedCount} validee${validatedCount > 1 ? 's' : ''}`;
+        els.overviewValidated.textContent = `${validatedCount} validée${validatedCount > 1 ? 's' : ''}`;
         els.overviewContributed.textContent = formatCurrency(totalContributed);
         els.overviewPayable.textContent = formatCurrency(totalPayable);
         els.overviewPenalties.textContent = formatCurrency(totalPenalties);
@@ -640,12 +647,12 @@
         const count = state.filteredDeclarations.length;
         const totalCount = state.declarations.length;
         els.declarationCount.textContent = count === totalCount
-            ? `${count} declaration${count > 1 ? 's' : ''}`
-            : `${count} resultat${count > 1 ? 's' : ''} sur ${totalCount}`;
+            ? `${count} déclaration${count > 1 ? 's' : ''}`
+            : `${count} résultat${count > 1 ? 's' : ''} sur ${totalCount}`;
         renderOverview();
 
         if (count === 0) {
-            els.declarationsTableBody.innerHTML = '<tr><td colspan="7" class="empty">Aucune declaration trouvee.</td></tr>';
+            els.declarationsTableBody.innerHTML = '<tr><td colspan="7" class="empty">Aucune déclaration trouvée.</td></tr>';
             return;
         }
 
@@ -653,7 +660,7 @@
             <tr>
                 <td>${escapeHtml(item.employer_name || '-')}</td>
                 <td>${escapeHtml(String(item.period_month).padStart(2, '0'))}/${escapeHtml(String(item.period_year))}</td>
-                <td><span class="${statusBadgeClass(item.status)}">${escapeHtml(item.status)}</span></td>
+                <td><span class="${statusBadgeClass(item.status)}">${escapeHtml(statusLabel(item.status))}</span></td>
                 <td>${escapeHtml(formatCurrency(item.total_declared_salary))}</td>
                 <td>${escapeHtml(formatCurrency(item.total_declared_contribution))}</td>
                 <td>${escapeHtml(item.lines_count ?? 0)}</td>
@@ -673,7 +680,7 @@
             .filter(Boolean)
             .sort((a, b) => b - a);
 
-        els.yearFilter.innerHTML = '<option value="">Toutes les annees</option>'
+        els.yearFilter.innerHTML = '<option value="">Toutes les années</option>'
             + years.map((year) => `<option value="${year}">${year}</option>`).join('');
         els.yearFilter.value = years.includes(Number(selectedYear)) ? selectedYear : '';
     }
@@ -706,7 +713,7 @@
     }
 
     async function loadDeclarations() {
-        setDeclarationStatus('Chargement des declarations...');
+        setDeclarationStatus('Chargement des déclarations...');
 
         try {
             const response = await fetch('/api/declarations', {
@@ -714,14 +721,14 @@
             });
 
             if (!response.ok) {
-                throw new Error('Impossible de charger les declarations.');
+                throw new Error('Impossible de charger les déclarations.');
             }
 
             state.declarations = await response.json();
             state.filteredDeclarations = [...state.declarations];
             populateYearFilter();
             applyFilters();
-            setDeclarationStatus('Declarations chargees.', 'ok');
+            setDeclarationStatus('Déclarations chargées.', 'ok');
         } catch (error) {
             setDeclarationStatus(error.message || 'Erreur de chargement.', 'error');
         }
@@ -729,7 +736,7 @@
 
     async function createDeclaration(event) {
         event.preventDefault();
-        setDeclarationStatus('Creation en cours...');
+        setDeclarationStatus('Création en cours...');
         els.saveDeclarationBtn.disabled = true;
 
         try {
@@ -757,20 +764,20 @@
             }
 
             if (!response.ok) {
-                throw new Error('Creation impossible.');
+                throw new Error('Création impossible.');
             }
 
             const created = await response.json();
             window.location.href = getDeclarationShowUrl(created.id);
         } catch (error) {
-            setDeclarationStatus(error.message || 'Erreur de creation.', 'error');
+            setDeclarationStatus(error.message || 'Erreur de création.', 'error');
         } finally {
             els.saveDeclarationBtn.disabled = false;
         }
     }
 
     async function deleteDeclaration(id) {
-        const confirmed = confirm('Supprimer cette declaration ?');
+        const confirmed = confirm('Supprimer cette déclaration ?');
         if (!confirmed) {
             return;
         }
@@ -791,7 +798,7 @@
         }
 
         await loadDeclarations();
-        setDeclarationStatus('Declaration supprimee.', 'ok');
+        setDeclarationStatus('Déclaration supprimée.', 'ok');
     }
 
     function escapeHtml(value) {

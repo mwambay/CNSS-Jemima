@@ -259,10 +259,18 @@
                             <thead><tr><th>Employeur</th><th>Periode</th><th>Statut</th><th>Cotisation</th><th></th></tr></thead>
                             <tbody>
                             @foreach($recentDeclarations as $declaration)
+                                @php
+                                    $declarationStatusLabel = match ($declaration->status) {
+                                        'SUBMITTED' => 'Soumise',
+                                        'VALIDATED' => 'Validée',
+                                        'REJECTED' => 'Rejetée',
+                                        default => 'Brouillon',
+                                    };
+                                @endphp
                                 <tr>
                                     <td><strong>{{ $declaration->employer?->legal_name ?? 'Employeur' }}</strong></td>
                                     <td>{{ str_pad((string) $declaration->period_month, 2, '0', STR_PAD_LEFT) }}/{{ $declaration->period_year }}</td>
-                                    <td><span class="status status-{{ $declaration->status }}">{{ $declaration->status }}</span></td>
+                                    <td><span class="status status-{{ $declaration->status }}">{{ $declarationStatusLabel }}</span></td>
                                     <td>{{ number_format((float) $declaration->total_declared_contribution, 2, ',', ' ') }} CDF</td>
                                     <td><a class="section-link" href="{{ route('declarations.show', $declaration) }}">Ouvrir</a></td>
                                 </tr>

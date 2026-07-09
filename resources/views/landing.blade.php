@@ -539,7 +539,6 @@
                     Aucun compte applicatif n'est nécessaire pour déposer une demande d'affiliation.
                 </p>
                 <div class="actions">
-                    <a class="btn btn-primary" href="{{ route('affiliation.create') }}">Demander une affiliation</a>
                     <a class="btn btn-secondary" href="#parcours">Voir comment ça marche</a>
                 </div>
             </div>
@@ -672,6 +671,16 @@
                     L'accès sécurisé permet de gérer les affiliations, employeurs, déclarations et cotisations.
                 </p>
                 <a class="btn btn-secondary" href="{{ route('login') }}" style="margin-top: 1.25rem;">Se connecter à l'espace agent</a>
+            </div>
+        </div>
+
+        <div class="block" style="margin-bottom: 1rem;">
+            <div class="persona-card" style="text-align: center; padding: 2rem;">
+                <h3 style="margin-bottom: .5rem;">Prêt à déposer une demande ?</h3>
+                <p style="max-width: 52ch; margin: 0 auto;">
+                    Accédez au formulaire public et recevez votre numéro de suivi par email après soumission.
+                </p>
+                <a class="btn btn-primary" href="{{ route('affiliation.create') }}" style="margin-top: 1.25rem;">Demander une affiliation</a>
             </div>
         </div>
 

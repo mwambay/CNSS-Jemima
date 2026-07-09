@@ -43,11 +43,16 @@
             @forelse($affiliationRequests as $request)
                 @php
                     $status = $request->status ?? 'PENDING';
+                    $statusLabel = match ($status) {
+                        'APPROVED' => 'Approuvée',
+                        'REJECTED' => 'Rejetée',
+                        default => 'En attente',
+                    };
                     $opinion = $request->sdt_opinion_status;
                     $opinionLabel = match ($opinion) {
                         'REQUESTED' => 'En attente',
                         'FAVORABLE' => 'Favorable',
-                        'UNFAVORABLE' => 'Defavorable',
+                        'UNFAVORABLE' => 'Défavorable',
                         default => '-',
                     };
                 @endphp
@@ -56,7 +61,7 @@
                     <td>{{ $request->legal_name ?: ($request->physical_employer_name ?: '-') }}</td>
                     <td>{{ $request->phone ?? '-' }}</td>
                     <td>{{ $request->primary_activity ?? '-' }}</td>
-                    <td><span class="badge badge-{{ strtolower($status) }}">{{ $status }}</span></td>
+                    <td><span class="badge badge-{{ strtolower($status) }}">{{ $statusLabel }}</span></td>
                     <td>
                         @if($opinion)
                             <span class="badge badge-{{ strtolower($opinion) }}">{{ $opinionLabel }}</span>

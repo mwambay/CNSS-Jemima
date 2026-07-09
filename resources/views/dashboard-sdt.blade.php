@@ -195,13 +195,21 @@
         @else
             <div class="timeline">
                 @foreach($recentDeclarations as $declaration)
+                    @php
+                        $declarationStatusLabel = match ($declaration->status) {
+                            'SUBMITTED' => 'Soumise',
+                            'VALIDATED' => 'Validée',
+                            'REJECTED' => 'Rejetée',
+                            default => 'Brouillon',
+                        };
+                    @endphp
                     <article class="timeline-item">
                         <span class="timeline-dot">D</span>
                         <div>
                             <strong>{{ $declaration->employer?->legal_name ?? 'Employeur' }}</strong>
                             <p>Declaration {{ str_pad((string) $declaration->period_month, 2, '0', STR_PAD_LEFT) }}/{{ $declaration->period_year }} mise a jour.</p>
                             <div class="timeline-meta">
-                                <span class="status status-{{ $declaration->status }}">{{ $declaration->status }}</span>
+                                <span class="status status-{{ $declaration->status }}">{{ $declarationStatusLabel }}</span>
                                 <span class="mini-badge">{{ number_format((float) $declaration->total_declared_contribution, 2, ',', ' ') }} CDF</span>
                             </div>
                         </div>

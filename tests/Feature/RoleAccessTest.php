@@ -53,8 +53,8 @@ class RoleAccessTest extends TestCase
         $this->actingAs($sdt)
             ->get('/sdt/rapports/activite')
             ->assertOk()
-            ->assertSee('Rapport d activite')
-            ->assertSee('Affiliations recues');
+            ->assertSee('Rapport d activité')
+            ->assertSee('Affiliations reçues');
     }
 
     public function test_agent_ses_cannot_open_sdt_reports(): void
@@ -72,7 +72,7 @@ class RoleAccessTest extends TestCase
         $this->actingAs($agent)
             ->get('/declarations')
             ->assertOk()
-            ->assertSee('Declarations')
+            ->assertSee('Déclarations')
             ->assertDontSee('Lecture seule');
     }
 
